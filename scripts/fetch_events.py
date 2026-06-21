@@ -124,6 +124,9 @@ def fetch_kudago():
         place = ev.get("place") or {}
         place_title = place.get("title") if isinstance(place, dict) else None
         address = place.get("address") if isinstance(place, dict) else None
+        coords = place.get("coords") if isinstance(place, dict) else None
+        lat = coords.get("lat") if isinstance(coords, dict) else None
+        lon = coords.get("lon") if isinstance(coords, dict) else None
 
         price = (ev.get("price") or "").strip()
         if ev.get("is_free"):
@@ -139,6 +142,8 @@ def fetch_kudago():
             "title": ev.get("title", "Без названия").strip().capitalize(),
             "place": place_title,
             "address": address,
+            "lat": lat,
+            "lon": lon,
             "category": slug,
             "category_label": label,
             "price": price or "уточняется",

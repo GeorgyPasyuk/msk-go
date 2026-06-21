@@ -22,17 +22,32 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 
+# Каналы отобраны по реальному контенту: рейвы/опен-эйры, андеграунд-вечеринки,
+# вело-комьюнити, новые места, спорт. Без бумерщины/рекламы (старые афиши выкинуты).
 CHANNELS = [
-    ("afishams", "Москва. Афиша"),
-    ("moscowafishi", "Бесплатная Москва"),
-    ("Mosgul", "Московские Гуляки"),
-    ("msk4free", "Бесплатно в Москве"),
-    ("MosTrips", "MosTrips"),
-    ("moscowes", "Вечерняя Москва"),
+    ("ravegid", "Rave Гид"),
+    ("tusovkimoskvaturbina", "Тусовки Москвы"),
+    ("rwbmoscow", "ВелоМосква RWB"),
+    ("idemmsk", "Идём по Москве"),
+    ("MoscowSportOfficial", "Москва Спорт"),
+    ("moscowvelofest", "Московский велофест"),
+    ("communitymoscow", "Community"),
+    ("mskevents_ru", "Концерты Москвы"),
 ]
+
+# Реклама/мусор и бумерские темы — посты с этими маркерами выкидываем.
+JUNK = [
+    "кодовое слово", "промокод", "розыгрыш", "разыгрыва", "скидк", "подпишись",
+    "подписывайтесь чтобы", "qr-код", "erid", "реклама", "казино", "букмекер",
+    "1win", "#маркетинг", "летуаль", "fix price", "вебинар", "реферальн",
+    # бумер-темы
+    "дискотека 80", "авторадио", "шансон", "филармони", "шостакович",
+    "оперетт", "фольклор", "русское поле", "для тех кому за", "ретро-вечер",
+]
+
 WINDOW_DAYS = 21
 PER_CHANNEL = 12
-TOTAL_CAP = 80
+TOTAL_CAP = 90
 
 MONTHS_RE = r"(?:январ|феврал|март|апрел|ма[яй]|июн|июл|август|сентябр|октябр|ноябр|декабр)"
 DATE_RE = re.compile(rf"\b\d{{1,2}}\s+{MONTHS_RE}\w*", re.I)
@@ -76,6 +91,9 @@ def parse_channel(slug, name, since_ts):
             continue
         text = clean_text(m_text.group(1)) if m_text else ""
         if not text:
+            continue
+        low = text.lower()
+        if any(k in low for k in JUNK):     # реклама/мусор/бумерщина
             continue
         m_photo = re.search(r"background-image:url\('([^']+)'\)", b)
         date_hint = (DATE_RE.search(text) or DATE_NUM_RE.search(text))

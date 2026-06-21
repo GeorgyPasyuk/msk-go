@@ -128,6 +128,9 @@ a{color:inherit;text-decoration:none}
 
 footer.foot{padding:80px 0 60px;color:var(--faint);font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
 
+/* ===== MAP ===== */
+#map{height:min(70vh,640px);min-height:420px;width:100%;border:1px solid var(--hair);background:var(--surface-2)}
+
 /* ===== FEED (из каналов) ===== */
 .feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
 .post{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--hair);

@@ -126,7 +126,7 @@ function buildSummer(){
 const ICON_GLOBE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.4 2.5 15.6 0 18M12 3c-2.5 2.4-2.5 15.6 0 18"/></svg>`;
 const ICON_TG = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3 2.7 11.8c-1 .4-1 1.8.1 2.1l4.9 1.5 1.9 5.9c.3.8 1.3 1 1.9.3l2.6-2.6 4.9 3.6c.7.5 1.6.1 1.8-.7L23.1 5.5c.2-1-.6-1.7-1.2-1.2z"/></svg>`;
 const AFISHA = [['KudaGo','события Москвы','https://kudago.com/msk/'],['Лето в Москве','городская программа','https://leto.mos.ru/'],['Афиша','афиша города','https://www.afisha.ru/msk/']];
-const TG = [['Москва. Афиша','@afishams','https://t.me/afishams'],['Бесплатная Москва','@moscowafishi','https://t.me/moscowafishi'],['Московские Гуляки','@Mosgul','https://t.me/Mosgul'],['Бесплатно в Москве','@msk4free','https://t.me/msk4free'],['MosTrips','@MosTrips','https://t.me/MosTrips'],['Вечерняя Москва','@moscowes','https://t.me/moscowes']];
+const TG = [['Rave Гид','@ravegid','https://t.me/ravegid'],['Тусовки Москвы','@tusovkimoskvaturbina','https://t.me/tusovkimoskvaturbina'],['ВелоМосква','@rwbmoscow','https://t.me/rwbmoscow'],['Идём по Москве','@idemmsk','https://t.me/idemmsk'],['Москва Спорт','@MoscowSportOfficial','https://t.me/MoscowSportOfficial'],['Концерты Москвы','@mskevents_ru','https://t.me/mskevents_ru']];
 function buildLinks(){
   const grp = (title, items, icon) =>
     `<div class="lg"><h3>${title}</h3><div class="lcols">` +
@@ -193,13 +193,39 @@ document.querySelectorAll('.vtab').forEach(b => {
   b.addEventListener('click', () => {
     const v = b.dataset.view;
     document.querySelectorAll('.vtab').forEach(x => x.classList.toggle('active', x === b));
-    document.getElementById('view-calendar').hidden = v !== 'calendar';
-    document.getElementById('view-feed').hidden = v !== 'feed';
+    document.querySelectorAll('.view').forEach(el => { el.hidden = el.id !== 'view-' + v; });
     document.querySelectorAll('[data-cal]').forEach(el => { el.style.display = v === 'calendar' ? '' : 'none'; });
     window.scrollTo(0, 0);
     if (v === 'feed' && !window.__feedLoaded){ window.__feedLoaded = true; loadFeed(); }
+    if (v === 'map') loadMap();
   });
 });
+
+/* ---------- карта (Яндекс) ---------- */
+const YKEY = '1febd3f7-9111-40fa-85da-4a9efca2f3d1';
+function loadMap(){
+  if (window.__mapInit) return; window.__mapInit = true;
+  const s = document.createElement('script');
+  s.src = `https://api-maps.yandex.ru/2.1/?apikey=${YKEY}&lang=ru_RU`;
+  s.onload = () => window.ymaps && ymaps.ready(initMap);
+  s.onerror = () => { document.getElementById('map').innerHTML = '<p class="block-sub" style="padding:20px">Не удалось загрузить карту.</p>'; window.__mapInit = false; };
+  document.head.appendChild(s);
+}
+function initMap(){
+  const pts = (DATA ? DATA.events : []).filter(e => e.lat && e.lon &&
+    (e.season_long || new Date(e.end || e.start) >= new Date()));
+  const map = new ymaps.Map('map', { center: [55.7522, 37.6156], zoom: 11,
+    controls: ['zoomControl', 'geolocationControl'] }, { suppressMapOpenBlock: true });
+  pts.forEach(e => {
+    const pm = new ymaps.Placemark([e.lat, e.lon],
+      { hintContent: stripEmoji(e.title), balloonContent: (e.place || '') + (e.price ? ' · ' + e.price : '') },
+      { preset: e.featured ? 'islands#redStretchyIcon' : 'islands#orangeDotIcon',
+        iconColor: '#FF4A1C' });
+    pm.events.add('click', (ev) => { ev.preventDefault(); openSheet(e); });
+    map.geoObjects.add(pm);
+  });
+  if (pts.length) map.setBounds(map.geoObjects.getBounds(), { checkZoomRange: true, zoomMargin: 40 });
+}
 
 /* ---------- лента из каналов ---------- */
 function relTime(iso){

@@ -16,7 +16,9 @@
       "url": "https://mosvelofest.mos.ru/",
       "source": "curated",
       "featured": true,
-      "description": "Тот самый ночной массовый велозаезд по перекрытому центру. Регистрация заранее на mosvelofest.mos.ru. Ты хотел сюда — закреплено."
+      "description": "Тот самый ночной массовый велозаезд по перекрытому центру. Регистрация заранее на mosvelofest.mos.ru. Ты хотел сюда — закреплено.",
+      "lat": 55.76,
+      "lon": 37.623
     },
     {
       "id": "curated-colorrun-2026-06-07",
@@ -33,7 +35,9 @@
       "url": "https://www.kp.ru/afisha/msk/sportivnye-meropriyatiya/krasochnyj-zabeg-v-moskve/",
       "source": "curated",
       "featured": false,
-      "description": "5 км через цветные зоны, осыпают краской. Тот самый забег в красках. Серия повторяется летом."
+      "description": "5 км через цветные зоны, осыпают краской. Тот самый забег в красках. Серия повторяется летом.",
+      "lat": 55.7823,
+      "lon": 37.6294
     },
     {
       "id": "curated-picnic-afishi-2026-06-20",
@@ -50,7 +54,9 @@
       "url": "https://picnic.afisha.ru/",
       "source": "curated",
       "featured": false,
-      "description": "Главный городской опен-эйр лета: Браво+Сюткин, Feduk, ЛСП, Slava Marlow, Markul, Saluki и десятки артистов на нескольких сценах."
+      "description": "Главный городской опен-эйр лета: Браво+Сюткин, Feduk, ЛСП, Slava Marlow, Markul, Saluki и десятки артистов на нескольких сценах.",
+      "lat": 55.6675,
+      "lon": 37.671
     },
     {
       "id": "curated-nightrun-2026-06-20",
@@ -67,7 +73,9 @@
       "url": "https://nightrun10km.runc.run/",
       "source": "curated",
       "featured": false,
-      "description": "Бег ночью вдоль Москвы-реки мимо Новодевичьего, Лужников и МГУ."
+      "description": "Бег ночью вдоль Москвы-реки мимо Новодевичьего, Лужников и МГУ.",
+      "lat": 55.752,
+      "lon": 37.566
     },
     {
       "id": "curated-yoga-day-2026-06-21",
@@ -84,7 +92,9 @@
       "url": "https://kudamoscow.ru/",
       "source": "curated",
       "featured": false,
-      "description": "Массовая практика на красивой площадке + прогулка по парку и дворцу."
+      "description": "Массовая практика на красивой площадке + прогулка по парку и дворцу.",
+      "lat": 55.6156,
+      "lon": 37.6869
     },
     {
       "id": "curated-vkus-moskvy-2026-06-27",
@@ -101,7 +111,9 @@
       "url": "https://tastefestival.ru/meropriyatiya/vkus-moskvy/",
       "source": "curated",
       "featured": false,
-      "description": "Большой гастромаркет: спецменю ресторанов, дегустации, шоу-кухни. Идти голодным."
+      "description": "Большой гастромаркет: спецменю ресторанов, дегустации, шоу-кухни. Идти голодным.",
+      "lat": 55.7558,
+      "lon": 37.6173
     },
     {
       "id": "curated-sheremetev-fest-2026-06-27",
@@ -118,9 +130,10 @@
       "url": "https://kudamoscow.ru/event/fest/06-2026/",
       "source": "curated",
       "featured": false,
-      "description": "Иммерсивный праздник истории, театра и музыки в парке у усадьбы. Костюмы, перформансы."
+      "description": "Иммерсивный праздник истории, театра и музыки в парке у усадьбы. Костюмы, перформансы.",
+      "lat": 55.8214,
+      "lon": 37.6175
     },
-
     {
       "id": "curated-season-pools",
       "title": "🏊 Открытые бассейны и пляжи «Лето в Москве»",
@@ -136,7 +149,9 @@
       "url": "https://www.mos.ru/city/projects/swim/",
       "source": "curated",
       "featured": true,
-      "description": "Пляжный бассейн 20 м + спортивный 50 м, шезлонги, вода 26–28°. Тот «пляж с бассейном», который ты видел. Работает весь сезон."
+      "description": "Пляжный бассейн 20 м + спортивный 50 м, шезлонги, вода 26–28°. Тот «пляж с бассейном», который ты видел. Работает весь сезон.",
+      "lat": 55.6726,
+      "lon": 37.666
     },
     {
       "id": "curated-season-sup",
@@ -153,7 +168,9 @@
       "url": "https://kudago.com/msk/list/gde-pokatatsya-na-bajdarkah/",
       "source": "curated",
       "featured": false,
-      "description": "Аренда сапа на пару часов — топовая активность на выходные. Спасжилет обязателен."
+      "description": "Аренда сапа на пару часов — топовая активность на выходные. Спасжилет обязателен.",
+      "lat": 55.7298,
+      "lon": 37.601
     },
     {
       "id": "curated-season-leto-moscow",
@@ -170,7 +187,9 @@
       "url": "https://leto.mos.ru/",
       "source": "curated",
       "featured": false,
-      "description": "100 дней бесплатных активностей: крокет и серсо, ретрофотоателье, мастер-классы, бесплатные спектакли каждый вечер на бульварах."
+      "description": "100 дней бесплатных активностей: крокет и серсо, ретрофотоателье, мастер-классы, бесплатные спектакли каждый вечер на бульварах.",
+      "lat": 55.76,
+      "lon": 37.605
     }
   ]
 }
