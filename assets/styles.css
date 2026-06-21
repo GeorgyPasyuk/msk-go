@@ -130,6 +130,17 @@ footer.foot{padding:80px 0 60px;color:var(--faint);font-family:var(--mono);font-
 
 /* ===== MAP ===== */
 #map{height:min(70vh,640px);min-height:420px;width:100%;border:1px solid var(--hair);background:var(--surface-2)}
+.agenda-head{display:flex;justify-content:flex-end;padding-top:clamp(18px,3vw,30px)}
+.seg{display:inline-flex;border:1px solid var(--hair);padding:3px;background:var(--surface)}
+.seg button{appearance:none;border:none;background:none;cursor:pointer;font-family:var(--mono);
+  font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);
+  padding:8px 15px;transition:.15s}
+.seg button:hover:not(.on){color:var(--fg)}
+.seg button.on{background:var(--accent);color:var(--accent-ink)}
+@media (prefers-color-scheme: dark){
+  /* тёмная карта: инвертируем только тайлы (подложку), метки не трогаем */
+  #map [class*="-ground-pane"]{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.95)}
+}
 
 /* ===== FEED (из каналов) ===== */
 .feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}

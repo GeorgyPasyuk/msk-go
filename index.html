@@ -46,6 +46,12 @@
 
 <main class="wrap">
   <div id="view-calendar" class="view">
+    <div class="agenda-head">
+      <div class="seg" id="seg">
+        <button data-mode="upcoming" class="on">Ближайшие</button>
+        <button data-mode="past">Прошлые</button>
+      </div>
+    </div>
     <div id="agenda"></div>
 
     <section id="summer" class="block">
@@ -71,7 +77,6 @@
   <div id="view-feed" class="view" hidden>
     <section class="block" style="padding-top:clamp(28px,4vw,44px)">
       <h2 class="block-h">Из каналов</h2>
-      <p class="block-sub">Свежие посты московских афиш-каналов. Тапни — откроется оригинал.</p>
       <div class="feed" id="feed"></div>
     </section>
   </div>

@@ -25,14 +25,10 @@ DATA = ROOT / "data"
 # Каналы отобраны по реальному контенту: рейвы/опен-эйры, андеграунд-вечеринки,
 # вело-комьюнити, новые места, спорт. Без бумерщины/рекламы (старые афиши выкинуты).
 CHANNELS = [
-    ("ravegid", "Rave Гид"),
-    ("tusovkimoskvaturbina", "Тусовки Москвы"),
-    ("rwbmoscow", "ВелоМосква RWB"),
-    ("idemmsk", "Идём по Москве"),
-    ("MoscowSportOfficial", "Москва Спорт"),
-    ("moscowvelofest", "Московский велофест"),
-    ("communitymoscow", "Community"),
-    ("mskevents_ru", "Концерты Москвы"),
+    ("club_dex", "DEX"),
+    ("Hlebozavod9", "Хлебозавод"),
+    ("supermetall", "Supermetall"),
+    ("cca_winzavod", "Винзавод"),
 ]
 
 # Реклама/мусор и бумерские темы — посты с этими маркерами выкидываем.

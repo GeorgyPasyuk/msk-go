@@ -44,13 +44,26 @@ function groupByWeekend(list){
 }
 
 /* ---------- агенда ---------- */
+let mode = 'upcoming';   // upcoming | past
+function currentList(){
+  if (mode === 'past')
+    return (DATA.past || [])
+      .filter(e => selCats.size === 0 || selCats.has(e.category))
+      .sort((a,b) => a.start < b.start ? 1 : -1);
+  return dated();
+}
 function renderAgenda(){
   const root = document.getElementById('agenda');
-  const groups = groupByWeekend(dated());
+  let groups = groupByWeekend(currentList());
+  if (mode === 'past') groups = groups.reverse();   // свежие сверху
   root.innerHTML = '';
-  if (!groups.length){ root.innerHTML = '<p class="block-sub" style="padding-top:40px">Ничего не нашлось — сними фильтры.</p>'; return; }
+  if (!groups.length){
+    root.innerHTML = '<p class="block-sub" style="padding-top:40px">' +
+      (mode === 'past' ? 'Прошлых событий пока нет.' : 'Ничего не нашлось — сними фильтры.') + '</p>';
+    return;
+  }
   groups.forEach(g => {
-    const rel = relLabel(g.sat), range = rangeLabel(g.sat);
+    const rel = mode === 'past' ? '' : relLabel(g.sat), range = rangeLabel(g.sat);
     const sec = document.createElement('section');
     sec.className = 'weekend reveal';
     sec.innerHTML =
@@ -126,7 +139,7 @@ function buildSummer(){
 const ICON_GLOBE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.4 2.5 15.6 0 18M12 3c-2.5 2.4-2.5 15.6 0 18"/></svg>`;
 const ICON_TG = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3 2.7 11.8c-1 .4-1 1.8.1 2.1l4.9 1.5 1.9 5.9c.3.8 1.3 1 1.9.3l2.6-2.6 4.9 3.6c.7.5 1.6.1 1.8-.7L23.1 5.5c.2-1-.6-1.7-1.2-1.2z"/></svg>`;
 const AFISHA = [['KudaGo','события Москвы','https://kudago.com/msk/'],['Лето в Москве','городская программа','https://leto.mos.ru/'],['Афиша','афиша города','https://www.afisha.ru/msk/']];
-const TG = [['Rave Гид','@ravegid','https://t.me/ravegid'],['Тусовки Москвы','@tusovkimoskvaturbina','https://t.me/tusovkimoskvaturbina'],['ВелоМосква','@rwbmoscow','https://t.me/rwbmoscow'],['Идём по Москве','@idemmsk','https://t.me/idemmsk'],['Москва Спорт','@MoscowSportOfficial','https://t.me/MoscowSportOfficial'],['Концерты Москвы','@mskevents_ru','https://t.me/mskevents_ru']];
+const TG = [['DEX','@club_dex','https://t.me/club_dex'],['Хлебозавод','@Hlebozavod9','https://t.me/Hlebozavod9'],['Supermetall','@supermetall','https://t.me/supermetall'],['Винзавод','@cca_winzavod','https://t.me/cca_winzavod']];
 function buildLinks(){
   const grp = (title, items, icon) =>
     `<div class="lg"><h3>${title}</h3><div class="lcols">` +
@@ -199,6 +212,14 @@ document.querySelectorAll('.vtab').forEach(b => {
     if (v === 'feed' && !window.__feedLoaded){ window.__feedLoaded = true; loadFeed(); }
     if (v === 'map') loadMap();
   });
+});
+
+/* ---------- переключатель Ближайшие/Прошлые ---------- */
+document.getElementById('seg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  mode = b.dataset.mode;
+  document.querySelectorAll('#seg button').forEach(x => x.classList.toggle('on', x === b));
+  renderAgenda();
 });
 
 /* ---------- карта (Яндекс) ---------- */

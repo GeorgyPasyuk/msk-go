@@ -1,11 +1,12 @@
 {
-  "generated_at": "2026-06-21T13:27:09+00:00",
+  "generated_at": "2026-06-21T13:50:44+00:00",
   "kudago_ok": true,
   "counts": {
     "total": 12,
     "curated": 10,
     "kudago": 2,
-    "season_long": 5
+    "season_long": 5,
+    "past": 1
   },
   "events": [
     {
@@ -235,6 +236,27 @@
       "end": "2026-09-30T20:59:00",
       "allDay": true,
       "season_long": true
+    }
+  ],
+  "past": [
+    {
+      "title": "Выставка-продажа «самоцветы на кузнецком»",
+      "place": "Выставочный салон «Московский Дом Художника»",
+      "address": "ул. Кузнецкий Мост, д. 11, стр. 1",
+      "lat": 55.762227,
+      "lon": 37.62219900000001,
+      "category": "exhibition",
+      "category_label": "Выставка",
+      "price": "бесплатно",
+      "url": "https://kudago.com/msk/event/vystavka-prodazha-samocvety-na-kuzneckom/",
+      "source": "kudago",
+      "featured": false,
+      "description": "В залах на Кузнецком снова откроется выставка-продажа самоцветов и украшений — место, куда приходят рассматривать янтарь на свету, искать серьги с редкими вставками и подолгу разговаривать с ювелирами о камнях.",
+      "id": "kudago-past-71980-1779224400",
+      "start": "2026-05-19T21:00:00",
+      "end": "2026-05-23T21:00:00",
+      "allDay": false,
+      "season_long": false
     }
   ]
 }

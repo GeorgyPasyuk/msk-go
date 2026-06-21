@@ -25,6 +25,7 @@ DATA = ROOT / "data"
 API = "https://kudago.com/public-api/v1.4/events/"
 LOCATION = "msk"
 WINDOW_DAYS = 180          # горизонт вперёд
+PAST_DAYS = 45             # горизонт назад (вкладка «Прошлые события»)
 SEASON_END = "2026-09-30T23:59:00"
 SEASON_SPAN_DAYS = 25      # длиннее => «Всё лето», а не точечное событие
 PAGE_SIZE = 100
@@ -55,6 +56,96 @@ def ts_to_local_iso(ts):
     return dt.replace(microsecond=0).isoformat()
 
 
+def paginate(params):
+    url = API + "?" + urllib.parse.urlencode(params)
+    raw, page = [], 1
+    while url and page <= MAX_PAGES:
+        req = urllib.request.Request(url, headers={"User-Agent": "msk-go/1.0"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            payload = json.loads(r.read().decode("utf-8"))
+        raw.extend(payload.get("results", []))
+        url = payload.get("next")
+        page += 1
+    return raw
+
+
+def kudago_base(ev):
+    """Общая часть события (без дат). None — если детское."""
+    cats = ev.get("categories") or []
+    if "kids" in cats:
+        return None
+    slug = next((c for c in cats if c in LABELS), (cats[0] if cats else "other"))
+    place = ev.get("place") or {}
+    place_title = place.get("title") if isinstance(place, dict) else None
+    address = place.get("address") if isinstance(place, dict) else None
+    coords = place.get("coords") if isinstance(place, dict) else None
+    price = (ev.get("price") or "").strip()
+    if ev.get("is_free"):
+        price = "бесплатно"
+    elif price:
+        price = price[0].upper() + price[1:]
+    desc = (ev.get("description") or "").strip()
+    if len(desc) > 400:
+        desc = desc[:397].rstrip() + "…"
+    return {
+        "title": ev.get("title", "Без названия").strip().capitalize(),
+        "place": place_title,
+        "address": address,
+        "lat": coords.get("lat") if isinstance(coords, dict) else None,
+        "lon": coords.get("lon") if isinstance(coords, dict) else None,
+        "category": slug,
+        "category_label": LABELS.get(slug, "Событие"),
+        "price": price or "уточняется",
+        "url": ev.get("site_url"),
+        "source": "kudago",
+        "featured": False,
+        "description": desc,
+    }
+
+
+BASE_FIELDS = "id,title,dates,place,site_url,categories,price,is_free,description"
+
+
+def fetch_past():
+    """Прошедшие события за последние PAST_DAYS дней."""
+    now = datetime.now()
+    since_ts = int((now - timedelta(days=PAST_DAYS)).timestamp())
+    now_ts = int(now.timestamp())
+    raw = paginate({
+        "lang": "ru", "location": LOCATION,
+        "actual_since": since_ts, "actual_until": now_ts,
+        "categories": ",".join(FUN_CATEGORIES), "page_size": PAGE_SIZE,
+        "fields": BASE_FIELDS, "expand": "place", "text_format": "text", "order_by": "dates",
+    })
+    events, seen = [], set()
+    for ev in raw:
+        occ = []
+        for d in ev.get("dates") or []:
+            s, e = d.get("start") or 0, d.get("end") or 0
+            if s <= 0:
+                continue
+            if e <= 0:
+                e = s
+            if e >= now_ts or e < since_ts:   # только завершившиеся в окне
+                continue
+            occ.append((s, e))
+        if not occ:
+            continue
+        base = kudago_base(ev)
+        if base is None:
+            continue
+        for s, e in sorted(occ, reverse=True)[:3]:
+            key = (base["title"], s)
+            if key in seen:
+                continue
+            seen.add(key)
+            events.append({**base, "id": f"kudago-past-{ev.get('id')}-{s}",
+                           "start": ts_to_local_iso(s), "end": ts_to_local_iso(e),
+                           "allDay": False, "season_long": False})
+    events.sort(key=lambda x: x["start"], reverse=True)
+    return events[:70]
+
+
 def fetch_kudago():
     now = datetime.now()
     since = int(now.timestamp())
@@ -75,17 +166,7 @@ def fetch_kudago():
         "text_format": "text",
         "order_by": "dates",
     }
-    url = API + "?" + urllib.parse.urlencode(params)
-
-    raw = []
-    page = 1
-    while url and page <= MAX_PAGES:
-        req = urllib.request.Request(url, headers={"User-Agent": "msk-go/1.0"})
-        with urllib.request.urlopen(req, timeout=30) as r:
-            payload = json.loads(r.read().decode("utf-8"))
-        raw.extend(payload.get("results", []))
-        url = payload.get("next")
-        page += 1
+    raw = paginate(params)
 
     season_end = datetime.fromisoformat(SEASON_END)
     today_start = int(datetime(now.year, now.month, now.day).timestamp())
@@ -115,43 +196,9 @@ def fetch_kudago():
         if not valid:
             continue
 
-        cats = ev.get("categories") or []
-        if "kids" in cats:           # детские события не нужны
+        base = kudago_base(ev)
+        if base is None:             # детские события не нужны
             continue
-        slug = next((c for c in cats if c in LABELS), (cats[0] if cats else "other"))
-        label = LABELS.get(slug, "Событие")
-
-        place = ev.get("place") or {}
-        place_title = place.get("title") if isinstance(place, dict) else None
-        address = place.get("address") if isinstance(place, dict) else None
-        coords = place.get("coords") if isinstance(place, dict) else None
-        lat = coords.get("lat") if isinstance(coords, dict) else None
-        lon = coords.get("lon") if isinstance(coords, dict) else None
-
-        price = (ev.get("price") or "").strip()
-        if ev.get("is_free"):
-            price = "бесплатно"
-        elif price:
-            price = price[0].upper() + price[1:]
-
-        desc = (ev.get("description") or "").strip()
-        if len(desc) > 400:
-            desc = desc[:397].rstrip() + "…"
-
-        base = {
-            "title": ev.get("title", "Без названия").strip().capitalize(),
-            "place": place_title,
-            "address": address,
-            "lat": lat,
-            "lon": lon,
-            "category": slug,
-            "category_label": label,
-            "price": price or "уточняется",
-            "url": ev.get("site_url"),
-            "source": "kudago",
-            "featured": False,
-            "description": desc,
-        }
 
         starts = [s for s, _ in valid]
         ends = [e for _, e in valid]
@@ -209,6 +256,13 @@ def main():
     except Exception as e:  # noqa: BLE001 — не валим сборку ни на чём
         print(f"⚠ Ошибка разбора KudaGo ({e}). Пишу только курируемые.", file=sys.stderr)
 
+    past = []
+    try:
+        past = fetch_past()
+        print(f"KudaGo прошлые: {len(past)} событий")
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠ Прошлые недоступны ({e})", file=sys.stderr)
+
     all_events = curated + kudago
     all_events.sort(key=lambda x: (x.get("season_long", False), x.get("start", "")))
 
@@ -220,14 +274,16 @@ def main():
             "curated": len(curated),
             "kudago": len(kudago),
             "season_long": sum(1 for e in all_events if e.get("season_long")),
+            "past": len(past),
         },
         "events": all_events,
+        "past": past,
     }
     (DATA / "events.json").write_text(
         json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     print(f"Записано data/events.json: всего {len(all_events)} "
-          f"(curated {len(curated)} + kudago {len(kudago)})")
+          f"(curated {len(curated)} + kudago {len(kudago)}) + прошлых {len(past)}")
 
 
 if __name__ == "__main__":
