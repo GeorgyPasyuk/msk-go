@@ -187,3 +187,50 @@ fetch('data/events.json?cb=' + Date.now())
     buildFilters(); renderAgenda(); buildSummer(); buildLinks(); observeReveal();
   })
   .catch(err => { document.getElementById('agenda').innerHTML = '<p class="block-sub" style="padding-top:40px">Не удалось загрузить данные. ' + err + '</p>'; });
+
+/* ---------- переключение видов ---------- */
+document.querySelectorAll('.vtab').forEach(b => {
+  b.addEventListener('click', () => {
+    const v = b.dataset.view;
+    document.querySelectorAll('.vtab').forEach(x => x.classList.toggle('active', x === b));
+    document.getElementById('view-calendar').hidden = v !== 'calendar';
+    document.getElementById('view-feed').hidden = v !== 'feed';
+    document.querySelectorAll('[data-cal]').forEach(el => { el.style.display = v === 'calendar' ? '' : 'none'; });
+    window.scrollTo(0, 0);
+    if (v === 'feed' && !window.__feedLoaded){ window.__feedLoaded = true; loadFeed(); }
+  });
+});
+
+/* ---------- лента из каналов ---------- */
+function relTime(iso){
+  const d = new Date(iso), diff = (Date.now() - d) / 36e5;
+  if (diff < 1) return Math.max(1, Math.round(diff * 60)) + ' мин назад';
+  if (diff < 24) return Math.round(diff) + ' ч назад';
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+}
+function loadFeed(){
+  const box = document.getElementById('feed');
+  box.innerHTML = '<p class="block-sub">Загружаю…</p>';
+  fetch('data/telegram.json?cb=' + Date.now())
+    .then(r => r.json())
+    .then(d => {
+      if (!d.posts || !d.posts.length){ box.innerHTML = '<p class="block-sub">Пока пусто. Лента обновляется раз в день.</p>'; return; }
+      box.innerHTML = '';
+      d.posts.forEach(p => {
+        const a = document.createElement('a');
+        a.className = 'post'; a.href = p.link; a.target = '_blank'; a.rel = 'noopener';
+        const hints = [
+          p.date_hint ? `<span class="hint dt">${p.date_hint}</span>` : '',
+          p.place_hint ? `<span class="hint">${p.place_hint}</span>` : ''
+        ].join('');
+        a.innerHTML =
+          `<div class="post-head"><span class="post-ch">${p.channel}</span><span class="post-time">${relTime(p.datetime)}</span></div>
+           ${p.photo ? `<div class="post-img" style="background-image:url('${p.photo}')"></div>` : ''}
+           <p class="post-text">${(p.text || '').replace(/</g,'&lt;')}</p>
+           ${hints ? `<div class="post-hints">${hints}</div>` : ''}
+           <span class="post-go">Открыть в канале →</span>`;
+        box.appendChild(a);
+      });
+    })
+    .catch(() => { box.innerHTML = '<p class="block-sub">Не удалось загрузить ленту.</p>'; });
+}
