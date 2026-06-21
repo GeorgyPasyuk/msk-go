@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0e0f13">
+<title>msk-go · движ Москвы</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎈</text></svg>">
+<link rel="stylesheet" href="assets/styles.css">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <header class="head">
+    <div class="head-main">
+      <h1>msk-go <span class="balloon">🎈</span></h1>
+      <p class="tagline">Движ Москвы в одном месте — фестивали, забеги, вода, опен-эйры. Без филармонии.</p>
+    </div>
+    <div class="updated" id="updated">загрузка…</div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="calendar">📅 Календарь</button>
+    <button class="tab" data-tab="summer">☀️ Всё лето</button>
+    <button class="tab" data-tab="sources">📡 Источники</button>
+  </nav>
+
+  <!-- ===== КАЛЕНДАРЬ ===== -->
+  <section class="panel active" id="tab-calendar">
+    <div class="filters" id="filters"></div>
+    <div id="calendar"></div>
+    <p class="hint">Клик по событию — детали и кнопка «Записаться». ⭐ — то, что особенно стоит поймать.</p>
+  </section>
+
+  <!-- ===== ВСЁ ЛЕТО ===== -->
+  <section class="panel" id="tab-summer">
+    <p class="panel-lead">Идёт всё лето — можно пойти в любой день. Не привязано к дате.</p>
+    <div class="cards" id="summer-cards"></div>
+  </section>
+
+  <!-- ===== ИСТОЧНИКИ ===== -->
+  <section class="panel" id="tab-sources">
+    <p class="panel-lead">Откуда берётся движ и как это обновляется. Чтобы понимать, куда смотреть.</p>
+    <div id="sources-status"></div>
+
+    <h3>Как это работает</h3>
+    <ol class="how">
+      <li><b>Раз в день GitHub Actions</b> запускает <code>scripts/fetch_events.py</code>.</li>
+      <li>Скрипт тянет <b>KudaGo API</b> (Москва, «прикольные» категории) + мёрджит ручной список <code>data/curated.json</code>.</li>
+      <li>Результат пишется в <code>data/events.json</code> и коммитится — страница обновляется сама.</li>
+      <li>Ничего не нужно запускать руками. Открыл ссылку с телефона или компа — всегда свежее.</li>
+    </ol>
+
+    <h3>Машинные источники</h3>
+    <div class="src-grid">
+      <a class="src" href="https://docs.kudago.com/api/" target="_blank">
+        <b>KudaGo API</b><span>Агрегатор событий, открытый, без ключа. Структурные даты/места/ссылки. Категории фильтруем (festival, party, recreation, quest, ярмарки…).</span></a>
+      <a class="src" href="https://leto.mos.ru/" target="_blank">
+        <b>Лето в Москве / mos.ru</b><span>Официальная городская программа: бассейны, пляжи, бесплатные активности. Сейчас заведено в курируемый список.</span></a>
+    </div>
+
+    <h3>Курируемое вручную</h3>
+    <p class="src-note">Спорт и веломассы (Color Run, Ночной забег, <b>Ночной велофестиваль 4 июля</b>) часто не попадают в KudaGo — они живут у организаторов (Running Community, mosvelofest.mos.ru). Их кладём руками в <code>data/curated.json</code>.</p>
+
+    <h3>ТГ-каналы — следить и пополнять</h3>
+    <p class="src-note">Самый быстрый поток анонсов. Пока читаются глазами; в следующей версии подключим автосбор.</p>
+    <div class="tg">
+      <a href="https://t.me/afishams" target="_blank"><b>@afishams</b> Москва. Афиша</a>
+      <a href="https://t.me/moscowafishi" target="_blank"><b>@moscowafishi</b> Бесплатная Москва</a>
+      <a href="https://t.me/Mosgul" target="_blank"><b>@Mosgul</b> Московские Гуляки</a>
+      <a href="https://t.me/msk4free" target="_blank"><b>@msk4free</b> Бесплатно в Москве</a>
+      <a href="https://t.me/MosTrips" target="_blank"><b>@MosTrips</b> тайные места</a>
+      <a href="https://t.me/moscowes" target="_blank"><b>@moscowes</b> Вечерняя Москва</a>
+    </div>
+  </section>
+
+  <footer class="foot">
+    msk-go · обновляется автоматически · <a href="https://github.com/GeorgyPasyuk/msk-go" target="_blank">исходники на GitHub</a>
+  </footer>
+</div>
+
+<!-- ===== МОДАЛКА ===== -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal">
+    <button class="modal-close" id="modal-close">×</button>
+    <span class="modal-cat" id="m-cat"></span>
+    <h2 id="m-title"></h2>
+    <div class="modal-row" id="m-when"></div>
+    <div class="modal-row" id="m-where"></div>
+    <div class="modal-row" id="m-price"></div>
+    <p class="modal-desc" id="m-desc"></p>
+    <a class="modal-btn" id="m-url" target="_blank" rel="noopener">Открыть / Записаться ↗</a>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+</body>
+</html>
