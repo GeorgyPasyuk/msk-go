@@ -116,6 +116,8 @@ def fetch_kudago():
             continue
 
         cats = ev.get("categories") or []
+        if "kids" in cats:           # детские события не нужны
+            continue
         slug = next((c for c in cats if c in LABELS), (cats[0] if cats else "other"))
         label = LABELS.get(slug, "Событие")
 

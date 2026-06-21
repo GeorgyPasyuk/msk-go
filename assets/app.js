@@ -30,7 +30,7 @@ function relLabel(sat){
 /* ---------- выборки ---------- */
 const dated = () => DATA.events
   .filter(e => !e.season_long && (selCats.size === 0 || selCats.has(e.category)) &&
-               new Date(e.end || e.start) >= new Date(Date.now() - 864e5))
+               new Date(e.end || e.start) >= new Date())   // только ещё не закончившиеся
   .sort((a,b) => a.start < b.start ? -1 : 1);
 
 function groupByWeekend(list){
@@ -72,7 +72,7 @@ function eventCard(e){
   const el = document.createElement('article');
   el.className = 'ev'; el.tabIndex = 0;
   el.innerHTML =
-    `<div class="ev-day"><span class="d">${d.getDate()}</span><span class="w">${WD[d.getDay()]}</span></div>
+    `<div class="ev-day"><span class="w">${WD[d.getDay()]}</span><span class="d">${d.getDate()}</span><span class="mo">${MONTHS[d.getMonth()].slice(0,3)}</span></div>
      <div class="ev-body">
        <span class="ev-cat">${e.category_label || 'Событие'}</span>
        <h3 class="ev-title">${stripEmoji(e.title)}</h3>
@@ -175,12 +175,6 @@ function observeReveal(){
   clearTimeout(window.__revealFb);
   window.__revealFb = setTimeout(() => document.querySelectorAll('.reveal:not(.in)').forEach(n => n.classList.add('in')), 2000);
 }
-const heroSq = document.getElementById('heroSq');
-let ticking = false;
-addEventListener('scroll', () => {
-  if (ticking) return; ticking = true;
-  requestAnimationFrame(() => { heroSq.style.background = `hsl(${(16 + scrollY * 0.05) % 360} 88% 54%)`; ticking = false; });
-}, { passive: true });
 
 /* ---------- старт ---------- */
 fetch('data/events.json?cb=' + Date.now())
