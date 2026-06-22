@@ -4,3 +4,7 @@ __pycache__/
 _code/
 *.png
 .venv/
+.gstack/
+# VPS-рантайм пайплайна (данные/логи/секреты) — не в git
+runtime/
+.env

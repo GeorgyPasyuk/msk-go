@@ -1,0 +1,23 @@
+# msk-go · бэкенд-пайплайн на VPS.
+# Запуск разово (cron каждый час):  docker compose run --rm pipeline
+# Данные и логи — в ./runtime (gitignored), не пачкают git-клон → git pull чист.
+name: msk-go
+
+services:
+  pipeline:
+    build: .
+    image: msk-go-pipeline
+    container_name: msk-go-pipeline
+    env_file:
+      - .env
+    environment:
+      - TZ=Europe/Moscow
+    volumes:
+      - ./runtime/data:/app/data     # events.json, telegram.json, кэши
+      - ./runtime/logs:/app/logs
+    restart: "no"
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
