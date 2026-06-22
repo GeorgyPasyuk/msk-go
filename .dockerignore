@@ -1,0 +1,13 @@
+.git
+.github
+.gstack
+runtime
+assets
+index.html
+README.md
+*.md
+__pycache__
+*.pyc
+.DS_Store
+.venv
+*.png
