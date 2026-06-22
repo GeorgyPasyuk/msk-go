@@ -452,6 +452,21 @@ def load_curated():
     return data.get("events", [])
 
 
+def load_telegram_events():
+    """ТГ-события (после LLM-извлечения) из telegram.json — втекают в общий
+    календарь наравне с KudaGo/Timepad/curated. Файл пишет fetch_telegram.py
+    (он должен отработать ДО этого скрипта); здесь только читаем events.
+    Посты без даты в events не попадают (остаются в telegram.json для OCR)."""
+    path = DATA / "telegram.json"
+    if not path.exists():
+        return []
+    try:
+        data = json.loads(path.read_text(encoding="utf-8")) or {}
+        return data.get("events", []) or []
+    except Exception:
+        return []
+
+
 def main():
     curated = load_curated()
     kudago, ok = [], False
@@ -478,7 +493,10 @@ def main():
     except Exception as e:  # noqa: BLE001
         print(f"⚠ Прошлые недоступны ({e})", file=sys.stderr)
 
-    all_events = curated + kudago + timepad
+    telegram = load_telegram_events()
+    print(f"Telegram: подхвачено {len(telegram)} событий из telegram.json")
+
+    all_events = curated + kudago + timepad + telegram
     try:
         geocode_missing(all_events)
     except Exception as e:  # noqa: BLE001
@@ -497,6 +515,7 @@ def main():
             "curated": len(curated),
             "kudago": len(kudago),
             "timepad": len(timepad),
+            "telegram": len(telegram),
             "season_long": sum(1 for e in all_events if e.get("season_long")),
             "past": len(past),
         },
