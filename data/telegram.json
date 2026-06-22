@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-22T09:18:53+00:00",
+  "generated_at": "2026-06-22T09:48:09+00:00",
   "channels_ok": 4,
   "count": 26,
   "posts": [
@@ -263,5 +263,6 @@
       "date_hint": null,
       "place_hint": null
     }
-  ]
+  ],
+  "events": []
 }

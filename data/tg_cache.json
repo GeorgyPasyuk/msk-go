@@ -1,0 +1,170 @@
+{
+  "https://t.me/cca_winzavod/9924": {
+    "is_event": false,
+    "is_ad": false,
+    "title": "Выставка «Вероятность встретить дракона...», собранная детьми",
+    "datetime_iso": null,
+    "price": null,
+    "url": null
+  },
+  "https://t.me/cca_winzavod/9916": {
+    "is_event": false,
+    "is_ad": false,
+    "title": "«Их объединяет свет искусства» — премьера фильма",
+    "datetime_iso": null,
+    "price": null,
+    "url": null
+  },
+  "https://t.me/Hlebozavod9/4874": {
+    "is_event": false,
+    "is_ad": false,
+    "title": "Лето на Хлебозаводе: больше пинг-понга в июне",
+    "datetime_iso": null,
+    "price": null,
+    "url": null
+  },
+  "https://t.me/club_dex/1209": {
+    "is_event": false,
+    "is_ad": false,
+    "title": "San Proper на сцене САД",
+    "datetime_iso": null,
+    "price": null,
+    "url": null
+  },
+  "https://t.me/club_dex/1208": {
+    "is_event": false,
+    "is_ad": false,
+    "title": "Прямые эфиры SURPRISE.FM",
+    "datetime_iso": null,
+    "price": null,
+    "url": null
+  },
+  "https://t.me/club_dex/1206": {
+    "is_event": false,
+    "is_ad": false,
+    "title": "Сцена САД открыта до 23:00",
+    "datetime_iso": null,
+    "price": null,
+    "url": null
+  },
+  "https://t.me/Hlebozavod9/4873": {
+    "is_event": false,
+    "is_ad": false,
+    "title": "Плейлист от группы hehehe для Хлебозавода",
+    "datetime_iso": null,
+    "price": null,
+    "url": null
+  },
+  "https://t.me/club_dex/1204": {
+    "is_event": true,
+    "is_ad": false,
+    "title": "Двор цветёт! Завтра открываем сцену САД",
+    "datetime_iso": "2026-06-21T17:00",
+    "price": null,
+    "url": null
+  },
+  "https://t.me/club_dex/1198": {
+    "is_event": false,
+    "is_ad": false,
+    "title": "Инсталляция BEYOND 001",
+    "datetime_iso": null,
+    "price": null,
+    "url": null
+  },
+  "https://t.me/cca_winzavod/9907": {
+    "is_event": false,
+    "is_ad": false,
+    "title": "Прогрев перед бриллиантом",
+    "datetime_iso": null,
+    "price": null,
+    "url": null
+  },
+  "https://t.me/club_dex/1195": {
+    "is_event": false,
+    "is_ad": false,
+    "title": "Расписание на уикенд DEX 0,99",
+    "datetime_iso": null,
+    "price": null,
+    "url": null
+  },
+  "https://t.me/Hlebozavod9/4872": {
+    "is_event": false,
+    "is_ad": false,
+    "title": "Призы турниров по пинг-понгу",
+    "datetime_iso": null,
+    "price": null,
+    "url": null
+  },
+  "https://t.me/club_dex/1191": {
+    "is_event": true,
+    "is_ad": false,
+    "title": "DEX 0,99 — Главная сцена",
+    "datetime_iso": "2026-06-19T15:00",
+    "price": null,
+    "url": null
+  },
+  "https://t.me/Hlebozavod9/4871": {
+    "is_event": true,
+    "is_ad": false,
+    "title": "Провокатор Маркет на Хлебозаводе",
+    "datetime_iso": "2026-06-20T12:00",
+    "price": null,
+    "url": null
+  },
+  "https://t.me/Hlebozavod9/4862": {
+    "is_event": false,
+    "is_ad": false,
+    "title": "Не хлебом единым: как «Хлебозавод» уже 10 лет объединяет творческих людей",
+    "datetime_iso": null,
+    "price": null,
+    "url": null
+  },
+  "https://t.me/Hlebozavod9/4861": {
+    "is_event": true,
+    "is_ad": false,
+    "title": "Большой соседский турнир",
+    "datetime_iso": null,
+    "price": null,
+    "url": null
+  },
+  "https://t.me/Hlebozavod9/4860": {
+    "is_event": false,
+    "is_ad": false,
+    "title": "Необычный хлебушек от Дня Соседа",
+    "datetime_iso": null,
+    "price": null,
+    "url": null
+  },
+  "https://t.me/Hlebozavod9/4859": {
+    "is_event": true,
+    "is_ad": false,
+    "title": "Инсталляция «Город говорит» на Пикнике Афиши",
+    "datetime_iso": null,
+    "price": null,
+    "url": null
+  },
+  "https://t.me/Hlebozavod9/4855": {
+    "is_event": false,
+    "is_ad": true,
+    "title": "Собственная линейка альтернативного молока от Сварщицы Екатерины",
+    "datetime_iso": null,
+    "price": null,
+    "url": null
+  },
+  "https://t.me/supermetall/544": {
+    "is_event": true,
+    "is_ad": true,
+    "title": "Supermetall Market 2026",
+    "datetime_iso": "2026-07-25T00:00",
+    "price": null,
+    "url": null
+  },
+  "https://t.me/supermetall/530": {
+    "is_event": false,
+    "is_ad": true,
+    "title": "Свободный лот в Лобби @super.metall",
+    "datetime_iso": null,
+    "price": null,
+    "url": null
+  }
+}

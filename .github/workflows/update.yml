@@ -23,16 +23,20 @@ jobs:
           python-version: '3.12'
 
       - name: Fetch events
+        env:
+          TIMEPAD_TOKEN: ${{ secrets.TIMEPAD_TOKEN }}
         run: python3 scripts/fetch_events.py
 
       - name: Fetch telegram feed
+        env:
+          OPENROUTER_KEY: ${{ secrets.OPENROUTER_KEY }}
         run: python3 scripts/fetch_telegram.py
 
       - name: Commit if changed
         run: |
           git config user.name  "msk-go-bot"
           git config user.email "msk-go-bot@users.noreply.github.com"
-          git add data/events.json data/telegram.json
+          git add data/events.json data/telegram.json data/tg_cache.json
           if git diff --staged --quiet; then
             echo "Нет изменений в events.json"
           else

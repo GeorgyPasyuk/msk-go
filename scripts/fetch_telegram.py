@@ -11,6 +11,7 @@ msk-go · лента из телеграм-каналов.
 """
 
 import json
+import os
 import re
 import sys
 import html
@@ -21,6 +22,118 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
+
+# Площадки каналов: место известно по каналу → координаты хардкодим (карта работает без парсинга места)
+VENUES = {
+    "club_dex":     {"venue": "DEX",         "address": "Шарикоподшипниковская ул., 13с32", "lat": 55.7160, "lon": 37.6720},
+    "Hlebozavod9":  {"venue": "Хлебозавод",  "address": "Новодмитровская ул., 1",           "lat": 55.8079, "lon": 37.5873},
+    "supermetall":  {"venue": "Supermetall", "address": "2-я Бауманская ул., 9",            "lat": 55.7698, "lon": 37.6840},
+    "cca_winzavod": {"venue": "Винзавод",    "address": "4-й Сыромятнический пер., 1/8",     "lat": 55.7556, "lon": 37.6648},
+}
+
+OPENROUTER_KEY = os.environ.get("OPENROUTER_KEY")
+OR_MODELS = [
+    "openai/gpt-oss-120b:free",
+    "qwen/qwen3-next-80b-a3b-instruct:free",
+    "google/gemma-4-31b-it:free",
+    "meta-llama/llama-3.3-70b-instruct:free",
+]
+
+
+def llm_extract(text, post_date):
+    """Один пост → dict с полями события, или None. Не валит сборку."""
+    prompt = (
+        f"Сегодня {post_date[:10]}. Разбери пост телеграм-канала площадки о событиях. "
+        "Верни ТОЛЬКО JSON без markdown и пояснений: "
+        '{"is_event":bool,"is_ad":bool,"title":str,"datetime_iso":str|null,"price":str|null,"url":str|null}. '
+        "is_event=true только если это анонс конкретного мероприятия с датой/временем. "
+        "is_ad=true если это реклама товара/услуги/розыгрыш/коллаборация бренда. "
+        "datetime_iso — момент начала YYYY-MM-DDTHH:MM (относительные «завтра/в субботу» вычисли от сегодня); null если даты нет. "
+        "title — короткое название. price — как в тексте или null.\n"
+        f'Пост:\n"""{text}"""'
+    )
+    for model in OR_MODELS:
+        body = json.dumps({"model": model, "temperature": 0,
+                           "messages": [{"role": "user", "content": prompt}]}).encode()
+        req = urllib.request.Request(
+            "https://openrouter.ai/api/v1/chat/completions", data=body,
+            headers={"Authorization": "Bearer " + OPENROUTER_KEY, "Content-Type": "application/json",
+                     "HTTP-Referer": "https://georgypasyuk.github.io/msk-go", "X-Title": "msk-go"})
+        try:
+            d = json.loads(urllib.request.urlopen(req, timeout=45).read().decode())
+            content = d["choices"][0]["message"]["content"]
+            a, b = content.find("{"), content.rfind("}")
+            if a < 0 or b < 0:
+                continue
+            return json.loads(content[a:b + 1])
+        except Exception:
+            continue
+    return None
+
+
+CACHE_FILE = DATA / "tg_cache.json"
+
+
+def build_events(posts):
+    if not OPENROUTER_KEY:
+        print("OpenRouter: ключ не задан — события из ТГ не извлекаю", file=sys.stderr)
+        return []
+    cache = {}
+    if CACHE_FILE.exists():
+        try:
+            cache = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
+        except Exception:
+            cache = {}
+    now = datetime.now()
+    events, calls = [], 0
+    for p in posts:
+        if len(p["text"]) < 40:
+            continue
+        slug = p["channel_url"].rsplit("/", 1)[-1]
+        link = p["link"]
+        if link in cache:                 # уже разбирали — LLM не зовём
+            res = cache[link]
+        else:
+            res = llm_extract(p["text"], p["datetime"])
+            calls += 1
+            if res is None:               # сбой API — не кэшируем, повторим в след. раз
+                continue
+            cache[link] = res
+        if not res or not res.get("is_event") or res.get("is_ad"):
+            continue
+        dt = res.get("datetime_iso")
+        if not dt:
+            continue
+        try:
+            d = datetime.fromisoformat(str(dt)[:16])
+        except ValueError:
+            continue
+        if d < now - timedelta(hours=12):
+            continue
+        v = VENUES.get(slug, {})
+        mid = p["link"].rstrip("/").split("/")[-1]
+        events.append({
+            "id": f"tg-{slug}-{mid}",
+            "title": (res.get("title") or p["text"][:50]).strip(),
+            "start": str(dt)[:16], "end": None, "allDay": False, "season_long": False,
+            "place": v.get("venue") or p["channel"], "address": v.get("address"),
+            "lat": v.get("lat"), "lon": v.get("lon"),
+            "category": "tg", "category_label": v.get("venue") or p["channel"],
+            "price": res.get("price") or "уточняется",
+            "url": res.get("url") or p["link"],
+            "source": "telegram", "featured": False, "description": p["text"][:280],
+        })
+    # ограничим рост кэша
+    if len(cache) > 1000:
+        keep = {p["link"] for p in posts}
+        cache = {k: v for k, v in cache.items() if k in keep}
+    try:
+        CACHE_FILE.write_text(json.dumps(cache, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠ кэш не записан ({e})", file=sys.stderr)
+    print(f"ТГ→события (LLM): {len(events)} событий; новых LLM-запросов: {calls}")
+    return events
+
 
 # Каналы отобраны по реальному контенту: рейвы/опен-эйры, андеграунд-вечеринки,
 # вело-комьюнити, новые места, спорт. Без бумерщины/рекламы (старые афиши выкинуты).
@@ -125,14 +238,17 @@ def main():
     all_posts.sort(key=lambda p: p["datetime"], reverse=True)
     all_posts = all_posts[:TOTAL_CAP]
 
+    events = build_events(all_posts)
+
     out = {
         "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         "channels_ok": ok,
         "count": len(all_posts),
         "posts": all_posts,
+        "events": events,
     }
     (DATA / "telegram.json").write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"Записано data/telegram.json: {len(all_posts)} постов из {ok}/{len(CHANNELS)} каналов")
+    print(f"Записано data/telegram.json: {len(all_posts)} постов, {len(events)} событий, из {ok}/{len(CHANNELS)} каналов")
 
 
 if __name__ == "__main__":

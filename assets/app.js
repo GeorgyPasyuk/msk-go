@@ -28,8 +28,9 @@ function relLabel(sat){
 }
 
 /* ---------- выборки ---------- */
+const catKey = e => e.category_label || e.category || 'Событие';
 const dated = () => DATA.events
-  .filter(e => !e.season_long && (selCats.size === 0 || selCats.has(e.category)) &&
+  .filter(e => !e.season_long && (selCats.size === 0 || selCats.has(catKey(e))) &&
                new Date(e.end || e.start) >= new Date())   // только ещё не закончившиеся
   .sort((a,b) => a.start < b.start ? -1 : 1);
 
@@ -48,7 +49,7 @@ let mode = 'upcoming';   // upcoming | past
 function currentList(){
   if (mode === 'past')
     return (DATA.past || [])
-      .filter(e => selCats.size === 0 || selCats.has(e.category))
+      .filter(e => selCats.size === 0 || selCats.has(catKey(e)))
       .sort((a,b) => a.start < b.start ? 1 : -1);
   return dated();
 }
@@ -100,16 +101,16 @@ function eventCard(e){
 
 /* ---------- фильтры ---------- */
 function buildFilters(){
-  const cats = {};
-  DATA.events.filter(e => !e.season_long).forEach(e => cats[e.category] = e.category_label || e.category);
+  const labels = [...new Set([...DATA.events, ...(DATA.past || [])]
+    .filter(e => !e.season_long).map(catKey))].sort((a, b) => a.localeCompare(b, 'ru'));
   const box = document.getElementById('filters');
   box.innerHTML = '';
-  Object.entries(cats).forEach(([slug, label]) => {
+  labels.forEach(label => {
     const chip = document.createElement('button');
     chip.className = 'chip'; chip.textContent = label;
     chip.addEventListener('click', () => {
-      if (selCats.has(slug)){ selCats.delete(slug); chip.classList.remove('on'); }
-      else { selCats.add(slug); chip.classList.add('on'); }
+      if (selCats.has(label)){ selCats.delete(label); chip.classList.remove('on'); }
+      else { selCats.add(label); chip.classList.add('on'); }
       renderAgenda();
     });
     box.appendChild(chip);
@@ -190,10 +191,14 @@ function observeReveal(){
 }
 
 /* ---------- старт ---------- */
-fetch('data/events.json?cb=' + Date.now())
-  .then(r => r.json())
-  .then(d => {
+const cb = '?cb=' + Date.now();
+Promise.all([
+  fetch('data/events.json' + cb).then(r => r.json()),
+  fetch('data/telegram.json' + cb).then(r => r.json()).catch(() => ({ posts: [], events: [] }))
+]).then(([d, tg]) => {
     DATA = d;
+    DATA.tg = tg;
+    if (tg && Array.isArray(tg.events) && tg.events.length) DATA.events = DATA.events.concat(tg.events);
     const g = d.generated_at ? new Date(d.generated_at) : null;
     document.getElementById('stamp').textContent = g
       ? 'обновлено ' + g.toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
@@ -257,11 +262,9 @@ function relTime(iso){
 }
 function loadFeed(){
   const box = document.getElementById('feed');
-  box.innerHTML = '<p class="block-sub">Загружаю…</p>';
-  fetch('data/telegram.json?cb=' + Date.now())
-    .then(r => r.json())
-    .then(d => {
-      if (!d.posts || !d.posts.length){ box.innerHTML = '<p class="block-sub">Пока пусто. Лента обновляется раз в день.</p>'; return; }
+  const d = DATA && DATA.tg;
+  {
+      if (!d || !d.posts || !d.posts.length){ box.innerHTML = '<p class="block-sub">Пока пусто. Лента обновляется раз в день.</p>'; return; }
       box.innerHTML = '';
       d.posts.forEach(p => {
         const a = document.createElement('a');
@@ -278,6 +281,5 @@ function loadFeed(){
            <span class="post-go">Открыть в канале →</span>`;
         box.appendChild(a);
       });
-    })
-    .catch(() => { box.innerHTML = '<p class="block-sub">Не удалось загрузить ленту.</p>'; });
+  }
 }

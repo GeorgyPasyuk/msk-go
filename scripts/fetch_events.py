@@ -12,7 +12,9 @@ data/events.json, который читает фронт.
 """
 
 import json
+import os
 import sys
+import html
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -236,6 +238,68 @@ def fetch_kudago():
     return events
 
 
+# --- Timepad: активности (спорт, экскурсии, еда, вечеринки, хобби, игры, здоровье) ---
+TIMEPAD_TOKEN = os.environ.get("TIMEPAD_TOKEN")
+# Без «Экскурсий» (461) — там спам городских квестов-франшиз.
+TIMEPAD_CATS = "376,456,457,524,2335,399"
+TIMEPAD_LABELS = {
+    "376": "Спорт", "456": "Гастро", "457": "Вечеринка",
+    "524": "Мастер-класс", "2335": "Игры", "399": "Здоровье",
+}
+TIMEPAD_CAP = 50
+
+
+def fetch_timepad():
+    if not TIMEPAD_TOKEN:
+        print("Timepad: токен не задан, пропуск", file=sys.stderr)
+        return []
+    now = datetime.now()
+    params = {
+        "cities": "Москва", "limit": 100, "sort": "starts_at",
+        "starts_at_min": now.strftime("%Y-%m-%dT%H:%M:%S"),
+        "category_ids": TIMEPAD_CATS,
+        "fields": "id,name,starts_at,ends_at,location,categories,url,price_min",
+    }
+    url = "https://api.timepad.ru/v1/events?" + urllib.parse.urlencode(params)
+    req = urllib.request.Request(url, headers={"Authorization": "Bearer " + TIMEPAD_TOKEN, "User-Agent": "msk-go"})
+    data = json.loads(urllib.request.urlopen(req, timeout=30).read().decode())
+    out, seen = [], set()
+    for e in data.get("values", []):
+        # схлопываем рекуррентные одинаковые (мастер-классы/квесты идут каждый день)
+        tkey = html.unescape(e.get("name", "")).strip().lower()[:32]
+        if tkey in seen:
+            continue
+        seen.add(tkey)
+        loc = e.get("location") or {}
+        coords = loc.get("coordinates")
+        lat = lon = None
+        if isinstance(coords, list) and len(coords) == 2:
+            lat, lon = coords[0], coords[1]
+        cats = e.get("categories") or []
+        slug_id = str(cats[0].get("id")) if cats else ""
+        start = (e.get("starts_at") or "")[:19]
+        end = (e.get("ends_at") or "")[:19] or None
+        if not start:
+            continue
+        pmin = e.get("price_min")
+        if pmin in (0, None):
+            price = "бесплатно" if pmin == 0 else "уточняется"
+        else:
+            price = f"от {pmin} ₽"
+        out.append({
+            "id": f"timepad-{e.get('id')}",
+            "title": html.unescape(e.get("name", "").strip()),
+            "start": start, "end": end, "allDay": False, "season_long": False,
+            "place": html.unescape(loc.get("name") or "") or loc.get("city") or "Москва",
+            "address": loc.get("address"),
+            "lat": lat, "lon": lon,
+            "category": "timepad", "category_label": TIMEPAD_LABELS.get(slug_id, "Активность"),
+            "price": price, "url": e.get("url"),
+            "source": "timepad", "featured": False, "description": "",
+        })
+    return out[:TIMEPAD_CAP]
+
+
 def load_curated():
     path = DATA / "curated.json"
     if not path.exists():
@@ -256,6 +320,13 @@ def main():
     except Exception as e:  # noqa: BLE001 — не валим сборку ни на чём
         print(f"⚠ Ошибка разбора KudaGo ({e}). Пишу только курируемые.", file=sys.stderr)
 
+    timepad = []
+    try:
+        timepad = fetch_timepad()
+        print(f"Timepad: получено {len(timepad)} событий")
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠ Timepad недоступен ({e})", file=sys.stderr)
+
     past = []
     try:
         past = fetch_past()
@@ -263,7 +334,7 @@ def main():
     except Exception as e:  # noqa: BLE001
         print(f"⚠ Прошлые недоступны ({e})", file=sys.stderr)
 
-    all_events = curated + kudago
+    all_events = curated + kudago + timepad
     all_events.sort(key=lambda x: (x.get("season_long", False), x.get("start", "")))
 
     out = {
@@ -273,6 +344,7 @@ def main():
             "total": len(all_events),
             "curated": len(curated),
             "kudago": len(kudago),
+            "timepad": len(timepad),
             "season_long": sum(1 for e in all_events if e.get("season_long")),
             "past": len(past),
         },
