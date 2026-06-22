@@ -216,12 +216,17 @@ function plural(n, one, few, many){
 }
 
 /* ---------- старт ---------- */
-// ТГ-события втекают в общий календарь через бэкенд (см. fetch_events.py),
-// отдельной ленты «Из каналов» больше нет — читаем единый events.json.
+// Датированные ТГ-события втекают в общий календарь через бэкенд (fetch_events.py
+// мёрджит их в events.json — НЕ дублируем concat'ом на фронте). telegram.json
+// грузим только ради ленты «Из каналов» (сырые посты, в т.ч. без даты) —
+// временная вкладка, пока не вытащим все события в календарь.
 const cb = '?cb=' + Date.now();
-fetch('data/events.json' + cb).then(r => r.json())
-  .then(d => {
+Promise.all([
+  fetch('data/events.json' + cb).then(r => r.json()),
+  fetch('data/telegram.json' + cb).then(r => r.json()).catch(() => ({ posts: [], events: [] }))
+]).then(([d, tg]) => {
     DATA = d;
+    DATA.tg = tg;
     const g = d.generated_at ? new Date(d.generated_at) : null;
     document.getElementById('stamp').textContent = g
       ? 'обновлено ' + g.toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
@@ -238,6 +243,7 @@ document.querySelectorAll('.vtab').forEach(b => {
     document.querySelectorAll('.view').forEach(el => { el.hidden = el.id !== 'view-' + v; });
     document.querySelectorAll('[data-cal]').forEach(el => { el.style.display = v === 'calendar' ? '' : 'none'; });
     window.scrollTo(0, 0);
+    if (v === 'feed' && !window.__feedLoaded){ window.__feedLoaded = true; loadFeed(); }
     if (v === 'map') loadMap();
   });
 });
@@ -276,3 +282,32 @@ function initMap(){
   if (pts.length) map.setBounds(map.geoObjects.getBounds(), { checkZoomRange: true, zoomMargin: 40 });
 }
 
+
+/* ---------- лента из каналов (временная, fallback для постов) ---------- */
+function relTime(iso){
+  const d = new Date(iso), diff = (Date.now() - d) / 36e5;
+  if (diff < 1) return Math.max(1, Math.round(diff * 60)) + ' мин назад';
+  if (diff < 24) return Math.round(diff) + ' ч назад';
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+}
+function loadFeed(){
+  const box = document.getElementById('feed');
+  const d = DATA && DATA.tg;
+  if (!d || !d.posts || !d.posts.length){ box.innerHTML = '<p class="block-sub">Пока пусто. Лента обновляется по расписанию.</p>'; return; }
+  box.innerHTML = '';
+  d.posts.forEach(p => {
+    const a = document.createElement('a');
+    a.className = 'post'; a.href = p.link; a.target = '_blank'; a.rel = 'noopener';
+    const hints = [
+      p.date_hint ? `<span class="hint dt">${p.date_hint}</span>` : '',
+      p.place_hint ? `<span class="hint">${p.place_hint}</span>` : ''
+    ].join('');
+    a.innerHTML =
+      `<div class="post-head"><span class="post-ch">${p.channel}</span><span class="post-time">${relTime(p.datetime)}</span></div>
+       ${p.photo ? `<div class="post-img" style="background-image:url('${p.photo}')"></div>` : ''}
+       <p class="post-text">${(p.text || '').replace(/</g,'&lt;')}</p>
+       ${hints ? `<div class="post-hints">${hints}</div>` : ''}
+       <span class="post-go">Открыть в канале →</span>`;
+    box.appendChild(a);
+  });
+}
