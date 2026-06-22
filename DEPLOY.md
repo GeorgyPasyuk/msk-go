@@ -40,6 +40,21 @@ Telegram-извлечение и Timepad включатся, когда ключ
 
 Логи: `runtime/logs/cron.log` + `docker logs` (json-file, 3×5 МБ ротация).
 
+## Фронт с VPS (GEO-103, доказательство переезда)
+
+Статичный фронт поднимается контейнером nginx, отдаёт `index.html` + `assets` +
+данные пайплайна (`runtime/data` → `/data`):
+
+```sh
+cd /root/repos/msk-go
+docker compose up -d web
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8090/   # 200
+```
+
+Доступен на `http://<vps-ip>:8090/`. **DNS, TLS и приватность репозитория не
+трогаем** — это решения владельца (см. `ESCALATIONS.md`). Прод остаётся на GitHub
+Pages, пока фронт не переедет по-настоящему (домен + TLS).
+
 ## Event-driven (задел, GEO-99)
 
 Сейчас триггер — только cron. Точка расширения под event-driven: watcher на новые

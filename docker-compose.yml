@@ -21,3 +21,24 @@ services:
       options:
         max-size: "5m"
         max-file: "3"
+
+  # Статичный фронт с VPS (доказательство переезда, GEO-103).
+  # Отдаёт index.html + assets + данные пайплайна (runtime/data → /data).
+  # Порт 8090 (свободен; 80/443/3000/8000/8010/8080/5432 заняты другими сервисами).
+  # DNS/TLS/приватность репо — НЕ трогаем (решение владельца, см. ESCALATIONS.md).
+  # Запуск отдельно:  docker compose up -d web
+  web:
+    image: nginx:alpine
+    container_name: msk-go-web
+    ports:
+      - "8090:80"
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html:ro
+      - ./assets:/usr/share/nginx/html/assets:ro
+      - ./runtime/data:/usr/share/nginx/html/data:ro
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
