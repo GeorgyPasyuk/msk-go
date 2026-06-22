@@ -2,7 +2,7 @@ name: update-events
 
 on:
   schedule:
-    - cron: '0 5 * * *'        # 08:00 МСК ежедневно
+    - cron: '37 6 * * *'       # 09:37 МСК; «кривая» минута — меньше шанс, что GitHub отбросит запуск
   workflow_dispatch:           # можно запустить руками из вкладки Actions
 
 permissions:
