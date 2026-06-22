@@ -191,6 +191,30 @@ function observeReveal(){
   window.__revealFb = setTimeout(() => document.querySelectorAll('.reveal:not(.in)').forEach(n => n.classList.add('in')), 2000);
 }
 
+/* ---------- свежесть данных ---------- */
+const STALE_HOURS = 48;
+function checkStale(generated){
+  const banner = document.getElementById('staleBanner');
+  if (!banner) return;
+  if (!generated || isNaN(generated)){   // нет метки времени = считаем устаревшим
+    document.getElementById('staleAge').textContent = 'неизвестно когда';
+    banner.hidden = false;
+    return;
+  }
+  const ageH = (Date.now() - generated) / 36e5;
+  if (ageH < STALE_HOURS){ banner.hidden = true; return; }
+  const days = Math.floor(ageH / 24);
+  document.getElementById('staleAge').textContent =
+    days >= 1 ? `${days} ${plural(days,'день','дня','дней')} назад` : `${Math.round(ageH)} ч назад`;
+  banner.hidden = false;
+}
+function plural(n, one, few, many){
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
+  return many;
+}
+
 /* ---------- старт ---------- */
 const cb = '?cb=' + Date.now();
 Promise.all([
@@ -203,6 +227,7 @@ Promise.all([
     const g = d.generated_at ? new Date(d.generated_at) : null;
     document.getElementById('stamp').textContent = g
       ? 'обновлено ' + g.toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+    checkStale(g);
     buildFilters(); renderAgenda(); buildSummer(); buildLinks(); observeReveal();
   })
   .catch(err => { document.getElementById('agenda').innerHTML = '<p class="block-sub" style="padding-top:40px">Не удалось загрузить данные. ' + err + '</p>'; });
