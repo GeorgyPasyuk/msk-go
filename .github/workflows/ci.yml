@@ -1,0 +1,23 @@
+name: ci
+# Гейт безопасности для PR агентов: базовые проверки, что ничего не сломано.
+# Зелёный ci = объективный сигнал, можно мёржить (см. AGENT_RULES.md).
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Python синтаксис
+        run: python3 -m py_compile scripts/*.py
+      - name: JSON валиден
+        run: python3 -c "import json; json.load(open('data/curated.json'))"
+      - name: JS синтаксис
+        run: node --check assets/app.js
+      - name: index.html на месте
+        run: test -f index.html
