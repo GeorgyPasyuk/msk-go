@@ -51,9 +51,35 @@ docker compose up -d web
 curl -s -o /dev/null -w "%{http_code}\n" http://localhost:8090/   # 200
 ```
 
-Доступен на `http://<vps-ip>:8090/`. **DNS, TLS и приватность репозитория не
-трогаем** — это решения владельца (см. `ESCALATIONS.md`). Прод остаётся на GitHub
-Pages, пока фронт не переедет по-настоящему (домен + TLS).
+Доступен на `http://<vps-ip>:8090/` (прод-замена Pages — домен/TLS владельцу не
+нужны, отдаём по IP:порт). ⚠️ `index.html` примонтирован как одиночный файл —
+после `git pull`, меняющего фронт, контейнер надо пересоздать, иначе отдаёт
+старый файл (git заменяет inode, bind-mount остаётся на старом):
+
+```sh
+docker compose up -d --force-recreate web
+```
+
+(Данные `runtime/data` и `assets/` — каталоги, подхватываются без пересоздания.)
+
+## Paperclip-оркестратор (GEO-101)
+
+Поднят на VPS, durable через systemd. Своя БД (отдельный Postgres-контейнер,
+НЕ трогает ozon).
+
+- Сервис: `systemctl status|restart paperclip` (unit `/etc/systemd/system/paperclip.service`).
+- БД: контейнер `paperclip-postgres` (localhost:54330), `DATABASE_URL` в `/root/paperclip.env`.
+- UI/API: `http://127.0.0.1:3100` (только loopback — безопасно).
+- Логи: `journalctl -u paperclip -f`.
+
+**Доступ к UI** (loopback) — через SSH-туннель с машины владельца:
+```sh
+ssh -L 3100:127.0.0.1:3100 root@155.212.166.15 -N
+# затем открыть http://localhost:3100
+```
+
+**Провайдер модели:** дефолт — Claude Code (Anthropic). Чтобы гонять агентов через
+OpenRouter/кастомный сервис — нужен OpenRouter-адаптер (см. ESCALATIONS).
 
 ## Event-driven (задел, GEO-99)
 
