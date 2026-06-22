@@ -13,6 +13,7 @@ data/events.json, который читает фронт.
 
 import json
 import os
+import re
 import sys
 import html
 import time
@@ -359,6 +360,90 @@ def geocode_missing(events, limit=25):
           f"{sum(1 for e in events if e.get('lat'))}/{len(events)}")
 
 
+# --- Кросс-источниковый дедуп (KudaGo + Timepad + curated + Telegram) ---
+# Один фестиваль приходит из нескольких источников → группируем по
+# (нормализованное название + день) и оставляем одну запись, добивая её
+# недостающими полями (координаты/цена/ссылка) из дублей. Разные площадки
+# с одинаковым названием в один день (франшизы) разводим по близости меток.
+SOURCE_PRIORITY = {"curated": 3, "kudago": 2, "timepad": 1, "telegram": 0}
+_TITLE_JUNK = re.compile(r"[^a-zа-я0-9 ]+")
+
+
+def _norm_title(t):
+    t = (t or "").lower().replace("ё", "е")
+    t = _TITLE_JUNK.sub(" ", t)
+    return re.sub(r"\s+", " ", t).strip()
+
+
+def _dup_score(ev):
+    """Насколько запись «богатая» — чем больше ценных полей, тем выше."""
+    s = 0
+    if ev.get("lat") and ev.get("lon"):
+        s += 4
+    if ev.get("price"):
+        s += 2
+    if ev.get("url"):
+        s += 2
+    if ev.get("description"):
+        s += 1
+    if ev.get("address"):
+        s += 1
+    return s
+
+
+def _far_apart(a, b):
+    """True, если у обоих есть координаты и они дальше ~2 км (разные площадки)."""
+    if not (a.get("lat") and a.get("lon") and b.get("lat") and b.get("lon")):
+        return False
+    d = ((a["lat"] - b["lat"]) ** 2 + (a["lon"] - b["lon"]) ** 2) ** 0.5
+    return d > 0.02   # ~2 км в градусах для широты Москвы
+
+
+def _backfill(primary, other):
+    for f in ("lat", "lon", "price", "url", "address", "description", "place"):
+        if not primary.get(f) and other.get(f):
+            primary[f] = other[f]
+    primary["featured"] = primary.get("featured") or other.get("featured")
+    return primary
+
+
+def dedupe(events):
+    groups, order, singles = {}, [], []
+    for ev in events:
+        key = (_norm_title(ev.get("title")), (ev.get("start") or "")[:10])
+        if not key[0] or not key[1]:        # без названия/даты не трогаем
+            singles.append(ev)
+            continue
+        if key not in groups:
+            groups[key] = []
+            order.append(key)
+        groups[key].append(ev)
+
+    out, removed = [], 0
+    for key in order:
+        grp = sorted(groups[key],
+                     key=lambda e: (_dup_score(e), SOURCE_PRIORITY.get(e.get("source"), 0)),
+                     reverse=True)
+        clusters = []                       # разводим одноимённые на разных площадках
+        for ev in grp:
+            for c in clusters:
+                if not _far_apart(c[0], ev):
+                    c.append(ev)
+                    break
+            else:
+                clusters.append([ev])
+        for c in clusters:
+            primary = c[0]
+            for other in c[1:]:
+                _backfill(primary, other)
+            removed += len(c) - 1
+            out.append(primary)
+    out.extend(singles)
+    if removed:
+        print(f"Кросс-дедуп: убрано {removed} дублей ({len(events)} → {len(out)})")
+    return out
+
+
 def load_curated():
     path = DATA / "curated.json"
     if not path.exists():
@@ -398,6 +483,10 @@ def main():
         geocode_missing(all_events)
     except Exception as e:  # noqa: BLE001
         print(f"⚠ геокодинг пропущен ({e})", file=sys.stderr)
+    try:
+        all_events = dedupe(all_events)     # координаты уже проставлены — точнее разводим площадки
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠ дедуп пропущен ({e})", file=sys.stderr)
     all_events.sort(key=lambda x: (x.get("season_long", False), x.get("start", "")))
 
     out = {
