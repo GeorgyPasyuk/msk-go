@@ -22,15 +22,16 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Fetch events
-        env:
-          TIMEPAD_TOKEN: ${{ secrets.TIMEPAD_TOKEN }}
-        run: python3 scripts/fetch_events.py
-
+      # ТГ — первым: fetch_events вливает извлечённые ТГ-события в общий events.json
       - name: Fetch telegram feed
         env:
           OPENROUTER_KEY: ${{ secrets.OPENROUTER_KEY }}
         run: python3 scripts/fetch_telegram.py
+
+      - name: Fetch events
+        env:
+          TIMEPAD_TOKEN: ${{ secrets.TIMEPAD_TOKEN }}
+        run: python3 scripts/fetch_events.py
 
       - name: Commit if changed
         run: |
