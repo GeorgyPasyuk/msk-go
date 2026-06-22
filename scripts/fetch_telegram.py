@@ -119,7 +119,7 @@ def build_events(posts):
             "place": v.get("venue") or p["channel"], "address": v.get("address"),
             "lat": v.get("lat"), "lon": v.get("lon"),
             "category": "tg", "category_label": v.get("venue") or p["channel"],
-            "price": res.get("price") or "уточняется",
+            "price": res.get("price") or "",
             "url": res.get("url") or p["link"],
             "source": "telegram", "featured": False, "description": p["text"][:280],
         })

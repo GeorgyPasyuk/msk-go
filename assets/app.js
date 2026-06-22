@@ -82,7 +82,8 @@ function renderAgenda(){
 
 function eventCard(e){
   const d = new Date(e.start);
-  const free = /беспл|свобод/i.test(e.price || '');
+  const price = (e.price && e.price !== 'уточняется') ? e.price : '';
+  const free = /беспл|свобод/i.test(price);
   const el = document.createElement('article');
   el.className = 'ev'; el.tabIndex = 0;
   el.innerHTML =
@@ -91,7 +92,7 @@ function eventCard(e){
        <span class="ev-cat">${e.category_label || 'Событие'}</span>
        <h3 class="ev-title">${stripEmoji(e.title)}</h3>
        ${e.place ? `<p class="ev-place">${e.place}</p>` : ''}
-       <p class="ev-price ${free ? 'free' : ''}">${e.price || 'уточняется'}</p>
+       ${price ? `<p class="ev-price ${free ? 'free' : ''}">${price}</p>` : ''}
        <span class="ev-cta">Подробнее →</span>
      </div>`;
   el.addEventListener('click', () => openSheet(e));
@@ -156,7 +157,7 @@ function openSheet(p){
   document.getElementById('s-title').textContent = (p.featured ? '★ ' : '') + stripEmoji(p.title);
   document.getElementById('s-when').innerHTML  = '<span class="k">когда</span>' + (p.season_long ? 'весь сезон' : fmtWhen(p));
   document.getElementById('s-where').innerHTML = p.place ? '<span class="k">где</span>' + p.place + (p.address ? ', ' + p.address : '') : '';
-  document.getElementById('s-price').innerHTML = p.price ? '<span class="k">цена</span>' + p.price : '';
+  document.getElementById('s-price').innerHTML = (p.price && p.price !== 'уточняется') ? '<span class="k">цена</span>' + p.price : '';
   document.getElementById('s-desc').textContent = p.description || '';
   const url = document.getElementById('s-url');
   if (p.url){ url.href = p.url; url.style.display = 'block'; } else url.style.display = 'none';

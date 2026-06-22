@@ -97,7 +97,7 @@ def kudago_base(ev):
         "lon": coords.get("lon") if isinstance(coords, dict) else None,
         "category": slug,
         "category_label": LABELS.get(slug, "Событие"),
-        "price": price or "уточняется",
+        "price": price,
         "url": ev.get("site_url"),
         "source": "kudago",
         "featured": False,
@@ -240,13 +240,10 @@ def fetch_kudago():
 
 # --- Timepad: активности (спорт, экскурсии, еда, вечеринки, хобби, игры, здоровье) ---
 TIMEPAD_TOKEN = os.environ.get("TIMEPAD_TOKEN")
-# Без «Экскурсий» (461) — там спам городских квестов-франшиз.
-TIMEPAD_CATS = "376,456,457,524,2335,399"
-TIMEPAD_LABELS = {
-    "376": "Спорт", "456": "Гастро", "457": "Вечеринка",
-    "524": "Мастер-класс", "2335": "Игры", "399": "Здоровье",
-}
-TIMEPAD_CAP = 50
+# Только спорт/гастро/вечеринки — без экскурсий-квестов, мастер-классов, «здоровья», лото.
+TIMEPAD_CATS = "376,456,457"
+TIMEPAD_LABELS = {"376": "Спорт", "456": "Гастро", "457": "Вечеринка"}
+TIMEPAD_CAP = 40
 
 
 def fetch_timepad():
@@ -254,9 +251,13 @@ def fetch_timepad():
         print("Timepad: токен не задан, пропуск", file=sys.stderr)
         return []
     now = datetime.now()
+    # старт с ближайшей пятницы (или сейчас, если уже пт–вс), иначе в первые 100
+    # результатов попадают только будни и выходных не видно
+    wd = now.weekday()
+    min_dt = now if wd in (4, 5, 6) else (now + timedelta(days=(4 - wd)))
     params = {
         "cities": "Москва", "limit": 100, "sort": "starts_at",
-        "starts_at_min": now.strftime("%Y-%m-%dT%H:%M:%S"),
+        "starts_at_min": min_dt.strftime("%Y-%m-%dT00:00:00"),
         "category_ids": TIMEPAD_CATS,
         "fields": "id,name,starts_at,ends_at,location,categories,url,price_min",
     }
@@ -265,7 +266,17 @@ def fetch_timepad():
     data = json.loads(urllib.request.urlopen(req, timeout=30).read().decode())
     out, seen = [], set()
     for e in data.get("values", []):
-        # схлопываем рекуррентные одинаковые (мастер-классы/квесты идут каждый день)
+        start = (e.get("starts_at") or "")[:19]
+        if not start:
+            continue
+        # только выходные (пт–вс) — будний коммерческий спам отсекаем (ДО дедупа,
+        # чтобы у рекуррентных событий оставить именно выходную сессию)
+        try:
+            if datetime.fromisoformat(start).weekday() not in (4, 5, 6):
+                continue
+        except ValueError:
+            continue
+        # схлопываем рекуррентные одинаковые (идут каждые выходные)
         tkey = html.unescape(e.get("name", "")).strip().lower()[:32]
         if tkey in seen:
             continue
@@ -273,19 +284,16 @@ def fetch_timepad():
         loc = e.get("location") or {}
         coords = loc.get("coordinates")
         lat = lon = None
-        if isinstance(coords, list) and len(coords) == 2:
-            lat, lon = coords[0], coords[1]
         cats = e.get("categories") or []
         slug_id = str(cats[0].get("id")) if cats else ""
-        start = (e.get("starts_at") or "")[:19]
         end = (e.get("ends_at") or "")[:19] or None
-        if not start:
-            continue
+        if isinstance(coords, list) and len(coords) == 2:
+            try:
+                lat, lon = float(coords[0]), float(coords[1])
+            except (TypeError, ValueError):
+                lat = lon = None
         pmin = e.get("price_min")
-        if pmin in (0, None):
-            price = "бесплатно" if pmin == 0 else "уточняется"
-        else:
-            price = f"от {pmin} ₽"
+        price = "бесплатно" if pmin == 0 else (f"от {pmin} ₽" if pmin else "")
         out.append({
             "id": f"timepad-{e.get('id')}",
             "title": html.unescape(e.get("name", "").strip()),
