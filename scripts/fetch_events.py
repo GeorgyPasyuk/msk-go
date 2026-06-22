@@ -15,6 +15,7 @@ import json
 import os
 import sys
 import html
+import time
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -240,9 +241,10 @@ def fetch_kudago():
 
 # --- Timepad: активности (спорт, экскурсии, еда, вечеринки, хобби, игры, здоровье) ---
 TIMEPAD_TOKEN = os.environ.get("TIMEPAD_TOKEN")
-# Только спорт/гастро/вечеринки — без экскурсий-квестов, мастер-классов, «здоровья», лото.
-TIMEPAD_CATS = "376,456,457"
-TIMEPAD_LABELS = {"376": "Спорт", "456": "Гастро", "457": "Вечеринка"}
+# Только Спорт (376): пробежки, йога, сап, беговые клубы. Гастро=алкоголь,
+# Вечеринки=позор/знакомства, Игры=мафия-клубы — отброшены после инспекции.
+TIMEPAD_CATS = "376"
+TIMEPAD_LABELS = {"376": "Спорт"}
 TIMEPAD_CAP = 40
 
 
@@ -308,6 +310,55 @@ def fetch_timepad():
     return out[:TIMEPAD_CAP]
 
 
+GEO_CACHE_FILE = DATA / "geo_cache.json"
+
+
+def geocode_missing(events, limit=25):
+    """Проставляет lat/lon событиям с адресом, но без координат — через Nominatim (OSM, бесплатно).
+    Кэш в geo_cache.json; вежливый rate-limit 1 req/sec; не валит сборку."""
+    cache = {}
+    if GEO_CACHE_FILE.exists():
+        try:
+            cache = json.loads(GEO_CACHE_FILE.read_text(encoding="utf-8"))
+        except Exception:
+            cache = {}
+    calls = 0
+    for e in events:
+        if e.get("lat") and e.get("lon"):
+            continue
+        q = e.get("address") or e.get("place")
+        if not q:
+            continue
+        if not q.lower().startswith(("москва", "moscow")):
+            q = "Москва, " + q
+        if q in cache:
+            hit = cache[q]
+        elif calls < limit:
+            hit = None
+            try:
+                url = "https://nominatim.openstreetmap.org/search?" + urllib.parse.urlencode(
+                    {"format": "json", "q": q, "limit": 1, "accept-language": "ru"})
+                req = urllib.request.Request(url, headers={"User-Agent": "msk-go/1.0 (github.com/GeorgyPasyuk/msk-go)"})
+                res = json.loads(urllib.request.urlopen(req, timeout=15).read().decode())
+                if res:
+                    hit = [round(float(res[0]["lat"]), 6), round(float(res[0]["lon"]), 6)]
+            except Exception:
+                hit = None
+            cache[q] = hit
+            calls += 1
+            time.sleep(1.1)
+        else:
+            continue
+        if hit:
+            e["lat"], e["lon"] = hit[0], hit[1]
+    try:
+        GEO_CACHE_FILE.write_text(json.dumps(cache, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+    print(f"Геокодинг: новых запросов {calls}, событий с координатами стало "
+          f"{sum(1 for e in events if e.get('lat'))}/{len(events)}")
+
+
 def load_curated():
     path = DATA / "curated.json"
     if not path.exists():
@@ -343,6 +394,10 @@ def main():
         print(f"⚠ Прошлые недоступны ({e})", file=sys.stderr)
 
     all_events = curated + kudago + timepad
+    try:
+        geocode_missing(all_events)
+    except Exception as e:  # noqa: BLE001
+        print(f"⚠ геокодинг пропущен ({e})", file=sys.stderr)
     all_events.sort(key=lambda x: (x.get("season_long", False), x.get("start", "")))
 
     out = {

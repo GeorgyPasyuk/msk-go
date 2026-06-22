@@ -36,7 +36,7 @@ jobs:
         run: |
           git config user.name  "msk-go-bot"
           git config user.email "msk-go-bot@users.noreply.github.com"
-          git add data/events.json data/telegram.json data/tg_cache.json
+          git add data/events.json data/telegram.json data/tg_cache.json data/geo_cache.json
           if git diff --staged --quiet; then
             echo "Нет изменений в events.json"
           else
