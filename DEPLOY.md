@@ -19,9 +19,12 @@ cd /root/repos/msk-go
 git pull --ff-only
 cp -n .env.example .env        # заполнить OPENROUTER_KEY / TIMEPAD_TOKEN (опц.)
 docker compose build
-docker compose run --rm pipeline
+docker compose up --force-recreate --abort-on-container-exit pipeline
 ls -la runtime/data            # events.json, telegram.json должны появиться
 ```
+
+`up --force-recreate` переиспользует единственный контейнер `msk-go-pipeline`
+(пересоздаётся каждый прогон) — не плодит контейнеры, как делал бы `run`.
 
 Без ключей пайплайн деградирует: KudaGo (бескейный) + curated работают всегда;
 Telegram-извлечение и Timepad включатся, когда ключи появятся в `.env`.
@@ -32,7 +35,7 @@ Telegram-извлечение и Timepad включатся, когда ключ
 
 ```
 # msk-go: пайплайн раз в час (в :07, чтобы не толкаться на ровном часе)
-7 * * * * cd /root/repos/msk-go && /usr/bin/docker compose run --rm pipeline >> /root/repos/msk-go/runtime/logs/cron.log 2>&1
+7 * * * * cd /root/repos/msk-go && /usr/bin/docker compose up --force-recreate --abort-on-container-exit pipeline >> /root/repos/msk-go/runtime/logs/cron.log 2>&1
 ```
 
 Логи: `runtime/logs/cron.log` + `docker logs` (json-file, 3×5 МБ ротация).
