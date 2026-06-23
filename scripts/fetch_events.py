@@ -438,6 +438,25 @@ def dedupe(events):
                 _backfill(primary, other)
             removed += len(c) - 1
             out.append(primary)
+
+    # Cross-title dedup: разные названия, но одно место + время → merge
+    coord_time = {}
+    for ev in out[:]:
+        start_day = (ev.get("start") or "")[:10]
+        if not start_day:
+            continue
+        ct_key = None
+        if ev.get("lat") and ev.get("lon"):
+            ct_key = (round(ev["lat"], 4), round(ev["lon"], 4), start_day)
+        elif ev.get("address"):
+            ct_key = (ev["address"].strip().lower(), start_day)
+        if ct_key and ct_key in coord_time:
+            existing = coord_time[ct_key]
+            _backfill(existing, ev)
+            out.remove(ev)
+            removed += 1
+        elif ct_key:
+            coord_time[ct_key] = ev
     out.extend(singles)
     if removed:
         print(f"Кросс-дедуп: убрано {removed} дублей ({len(events)} → {len(out)})")
@@ -507,9 +526,18 @@ def main():
         print(f"⚠ дедуп пропущен ({e})", file=sys.stderr)
     all_events.sort(key=lambda x: (x.get("season_long", False), x.get("start", "")))
 
+    now_iso = datetime.now(timezone.utc).replace(microsecond=0).isoformat()
     out = {
-        "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+        "generated_at": now_iso,
         "kudago_ok": ok,
+        "sources": {
+            "kudago": {"ok": ok, "count": len(kudago), "last_ok": now_iso if ok else None},
+            "timepad": {"ok": bool(timepad) or TIMEPAD_TOKEN is None,
+                        "count": len(timepad), "last_ok": now_iso if timepad else None},
+            "telegram": {"ok": True, "count": len(telegram),
+                         "last_ok": now_iso if telegram else None},
+            "curated": {"ok": True, "count": len(curated), "last_ok": now_iso},
+        },
         "counts": {
             "total": len(all_events),
             "curated": len(curated),
@@ -522,9 +550,12 @@ def main():
         "events": all_events,
         "past": past,
     }
-    (DATA / "events.json").write_text(
+    tmp = DATA / "events.json.tmp"
+    dst = DATA / "events.json"
+    tmp.write_text(
         json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8"
     )
+    tmp.replace(dst)   # atomic on POSIX
     print(f"Записано data/events.json: всего {len(all_events)} "
           f"(curated {len(curated)} + kudago {len(kudago)}) + прошлых {len(past)}")
 
