@@ -13,3 +13,11 @@ qa-debug*.js
 qa-single*.js
 qa-test*.js
 /tmp/qa-*/
+
+# Agent/build junk — NEVER commit (caused a secret leak via a core dump on 2026-06-23)
+node_modules/
+core
+*.core
+*.log
+qa-screenshots*.js
+QA_REPORT*.md
