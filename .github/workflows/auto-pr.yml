@@ -1,6 +1,7 @@
 name: auto-pr
-# Deterministic delivery: when an agent pushes a feature branch, auto-open a PR and
-# enable auto-merge (merges to main once CI is green). Agent only writes code; the rest is plumbing.
+# Deterministic delivery, self-contained (no downstream-workflow dependency to avoid
+# GITHUB_TOKEN recursive-trigger limits): on a feature-branch push ->
+#   1) CI gate (same checks as ci.yml), 2) create PR + squash-merge to main, 3) deploy to VPS.
 on:
   push:
     branches: ['gst-*', 'agent/*', 'feat/*']
@@ -8,16 +9,34 @@ permissions:
   contents: write
   pull-requests: write
 jobs:
-  open-and-automerge:
+  deliver:
     runs-on: ubuntu-latest
     steps:
-      - name: Open PR + enable auto-merge
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: CI gate (py/json/js/index)
+        run: |
+          python3 -m py_compile scripts/*.py
+          python3 -c "import json; json.load(open('data/curated.json'))"
+          node --check assets/app.js
+          test -f index.html
+      - name: Create PR + merge to main
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           BR="${GITHUB_REF_NAME}"
-          gh pr create -R "$GITHUB_REPOSITORY" --base main --head "$BR" \
-            --title "$BR" --body "Auto-PR (deterministic delivery) for branch \`$BR\`." \
-            || echo "PR already exists for $BR"
-          gh pr merge -R "$GITHUB_REPOSITORY" "$BR" --squash --auto --delete-branch \
-            || echo "auto-merge enable failed (will rely on green CI)"
+          gh pr create -R "$GITHUB_REPOSITORY" --base main --head "$BR" --title "$BR" --body "Auto-delivery (CI gate passed in workflow)." || echo "PR exists"
+          gh pr merge -R "$GITHUB_REPOSITORY" "$BR" --squash --delete-branch
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          command_timeout: 5m
+          script: deploy
