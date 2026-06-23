@@ -1,0 +1,22 @@
+name: deploy-vps
+# Native CD: on every push to main, deploy the merged code to the VPS prod site (:8090).
+# Connects over SSH using a forced-command deploy key (can only run /root/deploy-msk-go.sh).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VPS over SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: root
+          key: ${{ secrets.VPS_SSH_KEY }}
+          command_timeout: 5m
+          script: deploy
