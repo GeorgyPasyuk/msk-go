@@ -192,27 +192,58 @@ function observeReveal(){
 }
 
 /* ---------- свежесть данных ---------- */
-const STALE_HOURS = 48;
-function checkStale(generated){
-  const banner = document.getElementById('staleBanner');
-  if (!banner) return;
-  if (!generated || isNaN(generated)){   // нет метки времени = считаем устаревшим
-    document.getElementById('staleAge').textContent = 'неизвестно когда';
-    banner.hidden = false;
-    return;
-  }
-  const ageH = (Date.now() - generated) / 36e5;
-  if (ageH < STALE_HOURS){ banner.hidden = true; return; }
-  const days = Math.floor(ageH / 24);
-  document.getElementById('staleAge').textContent =
-    days >= 1 ? `${days} ${plural(days,'день','дня','дней')} назад` : `${Math.round(ageH)} ч назад`;
-  banner.hidden = false;
-}
+const FRESH_HOURS = 24;    // до 24 ч — зелёный
+const AGING_HOURS = 48;    // 24–48 ч — жёлтый, 48+ — красный + баннер
 function plural(n, one, few, many){
   const m10 = n % 10, m100 = n % 100;
   if (m10 === 1 && m100 !== 11) return one;
   if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
   return many;
+}
+function formatAge(ageH){
+  if (ageH < 1) return 'только что';
+  if (ageH < 24){
+    const h = Math.round(ageH);
+    return `${h} ${plural(h,'час','часа','часов')} назад`;
+  }
+  const d = Math.floor(ageH / 24);
+  return `${d} ${plural(d,'день','дня','дней')} назад`;
+}
+function updateFreshness(generated, gDate){
+  const el = document.getElementById('freshness');
+  const text = document.getElementById('f-text');
+  if (!el || !text) return;
+  if (!generated || isNaN(generated)){
+    el.className = 'freshness stale';
+    text.textContent = 'дата обновления неизвестна';
+    return;
+  }
+  const ageH = (Date.now() - generated) / 36e5;
+  if (ageH < FRESH_HOURS){
+    el.className = 'freshness fresh';
+    text.textContent = 'Обновлено сегодня · ' + gDate.toLocaleString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+  } else if (ageH < AGING_HOURS){
+    el.className = 'freshness aging';
+    text.textContent = 'Обновлено ' + formatAge(ageH);
+  } else {
+    el.className = 'freshness stale';
+    text.textContent = 'Обновлено ' + formatAge(ageH);
+  }
+}
+function checkStale(generated){
+  const banner = document.getElementById('staleBanner');
+  if (!banner) return;
+  if (!generated || isNaN(generated)){
+    document.getElementById('staleAge').textContent = 'неизвестно когда';
+    banner.hidden = false;
+    return;
+  }
+  const ageH = (Date.now() - generated) / 36e5;
+  if (ageH < AGING_HOURS){ banner.hidden = true; return; }
+  const days = Math.floor(ageH / 24);
+  document.getElementById('staleAge').textContent =
+    days >= 1 ? `${days} ${plural(days,'день','дня','дней')} назад` : `${Math.round(ageH)} ч назад`;
+  banner.hidden = false;
 }
 
 /* ---------- старт ---------- */
@@ -228,9 +259,11 @@ Promise.all([
     DATA = d;
     DATA.tg = tg;
     const g = d.generated_at ? new Date(d.generated_at) : null;
+    const gTs = g ? g.getTime() : null;
     document.getElementById('stamp').textContent = g
       ? 'обновлено ' + g.toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
-    checkStale(g);
+    updateFreshness(gTs, g);
+    checkStale(gTs);
     buildFilters(); renderAgenda(); buildSummer(); buildLinks(); observeReveal();
   })
   .catch(err => { document.getElementById('agenda').innerHTML = '<p class="block-sub" style="padding-top:40px">Не удалось загрузить данные. ' + err + '</p>'; });
