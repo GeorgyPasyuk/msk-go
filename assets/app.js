@@ -191,6 +191,19 @@ const closeSheet = () => overlay.classList.remove('show');
 document.getElementById('sheetClose').addEventListener('click', closeSheet);
 overlay.addEventListener('click', e => { if (e.target === overlay) closeSheet(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+
+// Back to Top button functionality
+const backTopBtn = document.getElementById('backTop');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 300) {
+    backTopBtn.style.display = 'block';
+  } else {
+    backTopBtn.style.display = 'none';
+  }
+});
+backTopBtn.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 function fmtWhen(p){
   try{
     const s = new Date(p.start);
