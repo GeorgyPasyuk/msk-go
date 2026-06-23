@@ -8,3 +8,8 @@ _code/
 # VPS-рантайм пайплайна (данные/логи/секреты) — не в git
 runtime/
 .env
+# QA-скрипты ad-hoc (не прод)
+qa-debug*.js
+qa-single*.js
+qa-test*.js
+/tmp/qa-*/

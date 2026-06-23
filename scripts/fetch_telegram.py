@@ -247,7 +247,10 @@ def main():
         "posts": all_posts,
         "events": events,
     }
-    (DATA / "telegram.json").write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp = DATA / "telegram.json.tmp"
+    dst = DATA / "telegram.json"
+    tmp.write_text(json.dumps(out, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.replace(dst)
     print(f"Записано data/telegram.json: {len(all_posts)} постов, {len(events)} событий, из {ok}/{len(CHANNELS)} каналов")
 
 
