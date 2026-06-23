@@ -44,6 +44,23 @@ function groupByWeekend(list){
   return [...map.values()].sort((a,b) => a.sat - b.sat);
 }
 
+function fillWeekendGaps(groups){
+  const now = new Date();
+  const curSat = weekendSat(now);
+  const last = groups.length ? groups[groups.length - 1].sat : curSat;
+  const end = new Date(Math.max(last.getTime() + 7 * 864e5, curSat.getTime() + 56 * 864e5));
+  const map = new Map(groups.map(g => [g.sat.getTime(), g]));
+  const out = [];
+  const cursor = new Date(curSat);
+  while (cursor <= end) {
+    const key = cursor.getTime();
+    out.push(map.get(key) || { sat: new Date(cursor), items: [] });
+    cursor.setDate(cursor.getDate() + 7);
+    cursor.setHours(0, 0, 0, 0);
+  }
+  return out;
+}
+
 /* ---------- агенда ---------- */
 let mode = 'upcoming';   // upcoming | past
 function currentList(){
@@ -59,10 +76,13 @@ function renderAgenda(){
   if (mode === 'past') groups = groups.reverse();   // свежие сверху
   root.innerHTML = '';
   if (!groups.length){
-    root.innerHTML = '<p class="block-sub" style="padding-top:40px">' +
-      (mode === 'past' ? 'Прошлых событий пока нет.' : 'Ничего не нашлось — сними фильтры.') + '</p>';
+    const msg = mode === 'past' ? 'Прошлых событий пока нет.'
+      : selCats.size ? 'Ничего не нашлось по этим категориям. Сними фильтры, чтобы увидеть всё.'
+      : 'Пока ничего не нашлось. Загляни позже — события появляются каждый день.';
+    root.innerHTML = '<p class="block-sub" style="padding-top:40px">' + msg + '</p>';
     return;
   }
+  if (mode === 'upcoming') groups = fillWeekendGaps(groups);
   groups.forEach(g => {
     const rel = mode === 'past' ? '' : relLabel(g.sat), range = rangeLabel(g.sat);
     const sec = document.createElement('section');
@@ -72,9 +92,13 @@ function renderAgenda(){
          <span class="wk-rel">${rel || range}</span>
          ${rel ? `<span class="wk-date">${range}</span>` : ''}
        </div>
-       <div class="cards"></div>`;
-    const cards = sec.querySelector('.cards');
-    g.items.forEach(e => cards.appendChild(eventCard(e)));
+       ${g.items.length
+         ? '<div class="cards"></div>'
+         : '<div class="empty-wk"><p class="empty-wk-t">В эти выходные ничего не нашлось</p><p class="empty-wk-s">Попробуй другие выходные или <a href="#links" class="empty-link">посмотри где ещё искать</a></p></div>'}`;
+    if (g.items.length) {
+      const cards = sec.querySelector('.cards');
+      g.items.forEach(e => cards.appendChild(eventCard(e)));
+    }
     root.appendChild(sec);
   });
   observeReveal();

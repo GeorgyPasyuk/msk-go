@@ -87,6 +87,12 @@ a{color:inherit;text-decoration:none}
 
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
 
+.empty-wk{padding:32px 0;text-align:center}
+.empty-wk-t{color:var(--muted);font-size:14px;margin:0;line-height:1.5}
+.empty-wk-s{color:var(--faint);font-size:13px;margin:8px 0 0;line-height:1.5}
+.empty-link{color:var(--accent)}
+.empty-link:hover{text-decoration:underline}
+
 /* ===== EVENT CARD ===== */
 .ev{display:flex;gap:18px;background:var(--surface);border:1px solid var(--hair);
   padding:20px;cursor:pointer;transition:transform .18s,border-color .18s;align-items:flex-start}
