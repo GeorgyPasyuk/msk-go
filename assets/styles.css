@@ -40,7 +40,10 @@ a{color:inherit;text-decoration:none}
 .eyebrow{margin:0 0 22px;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.2em;
   text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:10px}
 .eyebrow::before{content:"";width:10px;height:10px;background:var(--accent)}
-.hero-h{font-family:var(--head);font-weight:900;font-size:clamp(40px,10vw,92px);line-height:.96;
+ .hero-h{font-family:var(--head);font-weight:900;font-size:clamp(40px,10vw,92px);line-height:.96;}
+@media (max-width:600px){
+  .hero-h{font-size:clamp(30px,8vw,70px);}
+}
   letter-spacing:-.035em;margin:0;text-transform:uppercase}
 .hero-sub{margin:20px 0 0;color:var(--muted);font-size:clamp(15px,1.8vw,19px);max-width:40ch}
 .freshness{display:flex;align-items:center;gap:8px;margin:14px 0 0;font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.02em}
