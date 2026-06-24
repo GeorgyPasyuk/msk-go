@@ -284,7 +284,8 @@ Promise.all([
     DATA.tg = tg;
     const g = d.generated_at ? new Date(d.generated_at) : null;
     const gTs = g ? g.getTime() : null;
-    document.getElementById('stamp').textContent = (g
+    // GST-29: display total events
+document.getElementById('totalEvents').textContent = `Всего событий: ${DATA.counts?.total ?? DATA.events.length}`;
       ? 'обновлено ' + g.toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})
       : '') + ' ' + new Date().getFullYear();
     updateFreshness(gTs, g);
