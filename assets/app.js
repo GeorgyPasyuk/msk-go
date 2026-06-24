@@ -284,8 +284,9 @@ Promise.all([
     DATA.tg = tg;
     const g = d.generated_at ? new Date(d.generated_at) : null;
     const gTs = g ? g.getTime() : null;
-    document.getElementById('stamp').textContent = g
-      ? 'обновлено ' + g.toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+    document.getElementById('stamp').textContent = (g
+      ? 'обновлено ' + g.toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})
+      : '') + ' ' + new Date().getFullYear();
     updateFreshness(gTs, g);
     checkStale(gTs);
     buildFilters(); renderAgenda(); buildSummer(); buildLinks(); observeReveal();
