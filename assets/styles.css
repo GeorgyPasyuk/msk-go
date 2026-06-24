@@ -173,7 +173,10 @@ footer.foot{padding:80px 0 60px;color:var(--faint);font-family:var(--mono);font-
 .post-go{margin-top:14px;font-family:var(--mono);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--fg)}
 .post:hover .post-go{color:var(--accent)}
 
-/* ===== SHEET / MODAL ===== */
+/* back to top button */
+.back-to-top{position:fixed;right:1rem;bottom:1rem;background:var(--accent);color:var(--accent-ink);border:none;border-radius:50%;width:48px;height:48px;font-size:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:50;opacity:0;pointer-events:none;transition:opacity .3s;}
+.back-to-top.show{opacity:1;pointer-events:auto;}
+
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);
   display:none;z-index:60;align-items:center;justify-content:center;padding:18px}
 .overlay.show{display:flex;animation:fade .15s ease}

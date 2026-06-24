@@ -190,7 +190,16 @@ function openSheet(p){
 const closeSheet = () => overlay.classList.remove('show');
 document.getElementById('sheetClose').addEventListener('click', closeSheet);
 overlay.addEventListener('click', e => { if (e.target === overlay) closeSheet(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+// back to top button
+const backBtn = document.getElementById('backToTop');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 300) backBtn.classList.add('show');
+  else backBtn.classList.remove('show');
+});
+backBtn.addEventListener('click', () => {
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+
 
 // Back to top button
 const backTopBtn = document.createElement('button');
