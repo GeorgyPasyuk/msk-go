@@ -191,6 +191,28 @@ const closeSheet = () => overlay.classList.remove('show');
 document.getElementById('sheetClose').addEventListener('click', closeSheet);
 overlay.addEventListener('click', e => { if (e.target === overlay) closeSheet(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+
+// Back to top button
+const backTopBtn = document.createElement('button');
+backTopBtn.id = 'backTop';
+backTopBtn.textContent = '↑';
+backTopBtn.style.position = 'fixed';
+backTopBtn.style.right = '1rem';
+backTopBtn.style.bottom = '1rem';
+backTopBtn.style.padding = '0.5rem 0.8rem';
+backTopBtn.style.fontSize = '1.5rem';
+backTopBtn.style.display = 'none';
+backTopBtn.style.zIndex = '1000';
+backTopBtn.style.cursor = 'pointer';
+backTopBtn.title = 'Вверх';
+backTopBtn.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+document.body.appendChild(backTopBtn);
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 200) backTopBtn.style.display = 'block';
+  else backTopBtn.style.display = 'none';
+});
 function fmtWhen(p){
   try{
     const s = new Date(p.start);
