@@ -315,7 +315,7 @@ Promise.all([
     DATA.tg = tg;
     const eventCountEl = document.getElementById('eventCount');
     if (eventCountEl) {
-        const n = DATA.counts?.total ?? 0;
+        const n = DATA.counts?.total ?? (DATA.events ? DATA.events.length : 0);
         eventCountEl.textContent = n + ' ' + plural(n, 'событие', 'события', 'событий');
     }
     const g = d.generated_at ? new Date(d.generated_at) : null;
