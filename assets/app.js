@@ -320,9 +320,10 @@ Promise.all([
     }
     const g = d.generated_at ? new Date(d.generated_at) : null;
     const gTs = g ? g.getTime() : null;
-    document.getElementById('stamp').textContent = (g
-      ? 'обновлено ' + g.toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})
-      : '') + ' ' + new Date().getFullYear();
+    const year = new Date().getFullYear();
+    document.getElementById('stamp').innerHTML = (g
+      ? '<span class="stamp-text">обновлено ' + g.toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) + '</span>'
+      : '') + '<span class="stamp-year"> ' + year + '</span>';
     updateFreshness(gTs, g);
     checkStale(gTs);
     buildFilters(); renderAgenda(); buildSummer(); buildLinks(); observeReveal();
