@@ -97,8 +97,8 @@ a{color:inherit;text-decoration:none}
 
 /* ===== EVENT CARD ===== */
 .ev{display:flex;gap:18px;background:var(--surface);border:1px solid var(--hair);
-  padding:20px;cursor:pointer;transition:transform .18s,border-color .18s;align-items:flex-start}
-.ev:hover{transform:translateY(-3px);border-color:var(--fg)}
+  padding:20px;cursor:pointer;transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s,border-color .22s;align-items:flex-start}
+.ev:hover{transform:translateY(-5px);border-color:var(--accent);box-shadow:0 8px 24px rgba(0,0,0,.18)}
 .ev:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .ev:active{transform:translateY(-1px)}
 .ev-day{flex:none;width:56px;text-align:center;font-family:var(--mono);border-right:1px solid var(--hair);padding-right:16px}
