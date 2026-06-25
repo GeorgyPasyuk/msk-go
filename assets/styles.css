@@ -185,8 +185,8 @@ footer.foot{padding:80px 0 60px;color:var(--faint);font-family:var(--mono);font-
 .post:hover .post-go{color:var(--accent)}
 
 /* back to top button */
-.back-to-top{position:fixed;right:1rem;bottom:1rem;background:var(--accent);color:var(--accent-ink);border:none;border-radius:50%;width:48px;height:48px;font-size:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:50;opacity:0;pointer-events:none;transition:opacity .3s;}
-.back-to-top.show{opacity:1;pointer-events:auto;}
+.back-to-top{position:fixed;right:1rem;bottom:1rem;background:var(--accent);color:var(--accent-ink);border:none;border-radius:50%;width:48px;height:48px;font-size:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:50;opacity:0;pointer-events:none;transform:scale(.8);transition:opacity .4s ease-in-out,transform .4s ease-in-out;}
+.back-to-top.show{opacity:1;pointer-events:auto;transform:scale(1);}
 
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(3px);
   display:none;z-index:60;align-items:center;justify-content:center;padding:18px}
