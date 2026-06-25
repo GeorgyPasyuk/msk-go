@@ -207,8 +207,8 @@ footer.foot{padding:80px 0 60px;color:var(--faint);font-family:var(--mono);font-
 .s-desc{color:var(--muted);font-size:14px;line-height:1.6;margin:18px 0 22px}
 .s-desc:empty{display:none}
 .s-btn{display:block;text-align:center;background:var(--accent);color:var(--accent-ink);font-family:var(--mono);
-  font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:15px;transition:.15s}
-.s-btn:hover{filter:brightness(1.08)}
+  font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:15px;transition:.15s;cursor:pointer}
+.s-btn:hover{filter:brightness(1.12);transform:scale(1.02);box-shadow:0 4px 12px rgba(0,0,0,.24)}
 
 /* ===== MOTION ===== */
 .reveal{opacity:0;transform:translateY(14px)}
