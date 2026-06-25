@@ -74,7 +74,7 @@ a{color:inherit;text-decoration:none}
   font-family:var(--head);font-weight:700;font-size:15px;color:var(--muted);
   border-bottom:2px solid transparent;transition:color .15s,border-color .15s}
 .vtab:hover{color:var(--fg)}
-.vtab.active{color:var(--fg);border-color:var(--accent)}
+.vtab.active{color:var(--fg);border-color:var(--accent);font-weight:800}
 .view[hidden]{display:none}
 
 /* ===== FILTER BAR ===== */
