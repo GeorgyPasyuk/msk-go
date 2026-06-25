@@ -58,6 +58,14 @@ a{color:inherit;text-decoration:none}
   border-bottom:1px solid var(--hair);padding-bottom:3px;transition:.15s}
 .jump a:hover{color:var(--accent);border-color:var(--accent)}
 
+/* ===== SCROLL HINT ===== */
+.scroll-hint{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
+  background:none;border:none;cursor:pointer;color:var(--muted);padding:8px;
+  animation:scroll-bounce 2s ease-in-out infinite;opacity:.75;transition:opacity .5s;z-index:2}
+.scroll-hint:hover{opacity:1}
+.scroll-hint.hide{opacity:0;pointer-events:none}
+@keyframes scroll-bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(7px)}}
+
 /* ===== VIEW BAR ===== */
 .viewbar{position:sticky;top:58px;z-index:30;background:color-mix(in srgb,var(--bg) 86%,transparent);
   backdrop-filter:saturate(160%) blur(12px);border-bottom:1px solid var(--hair)}

@@ -197,6 +197,15 @@ window.addEventListener('scroll', () => {
   if (window.scrollY > 300) backBtn.classList.add('show');
   else backBtn.classList.remove('show');
 });
+
+// scroll hint — hide after first scroll
+(function(){
+  const hint = document.getElementById('scrollHint');
+  if (!hint) return;
+  hint.addEventListener('click', () => window.scrollBy({ top: Math.round(window.innerHeight * 0.8), behavior: 'smooth' }));
+  function onScroll(){ if (window.scrollY > 60){ hint.classList.add('hide'); window.removeEventListener('scroll', onScroll); } }
+  window.addEventListener('scroll', onScroll, { passive: true });
+})();
 backBtn.addEventListener('click', () => {
   window.scrollTo({top:0, behavior:'smooth'});
 });
