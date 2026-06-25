@@ -25,6 +25,22 @@ jobs:
           python3 -c "import json; json.load(open('data/curated.json'))"
           node --check assets/app.js
           test -f index.html
+      - name: Visual QA gate (headless chromium)
+        # Runtime + VISUAL check on the BRANCH before merge: console/page errors,
+        # content render, CSS structural lint, and floating-control OVERLAP detection
+        # (the class of bug that shipped via MSK-2: stacked back-to-top buttons /
+        # scroll-hint colliding with the orange "наверх" button at bottom-right).
+        # Fails the job -> the merge step below never runs -> bad UI never reaches prod.
+        run: |
+          npm i --no-save playwright@1.61.1
+          npx playwright install --with-deps chromium
+          python3 -m http.server 8099 --bind 127.0.0.1 &
+          SRV=$!
+          sleep 2
+          node tests/visual-gate.mjs "http://127.0.0.1:8099/"
+          rc=$?
+          kill $SRV 2>/dev/null || true
+          exit $rc
       - name: Create PR + merge to main
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
