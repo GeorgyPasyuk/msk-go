@@ -84,6 +84,7 @@ function renderAgenda(){
   }
   if (mode === 'upcoming') groups = fillWeekendGaps(groups);
   groups.forEach(g => {
+    if (!g.items.length) return;
     const rel = mode === 'past' ? '' : relLabel(g.sat), range = rangeLabel(g.sat);
     const sec = document.createElement('section');
     sec.className = 'weekend reveal';
@@ -92,13 +93,9 @@ function renderAgenda(){
          <span class="wk-rel">${rel || range}</span>
          ${rel ? `<span class="wk-date">${range}</span>` : ''}
        </div>
-       ${g.items.length
-         ? '<div class="cards"></div>'
-         : '<div class="empty-wk"><p class="empty-wk-t">В эти выходные ничего не нашлось</p><p class="empty-wk-s">Попробуй другие выходные или <a href="#links" class="empty-link">посмотри где ещё искать</a></p></div>'}`;
-    if (g.items.length) {
-      const cards = sec.querySelector('.cards');
-      g.items.forEach(e => cards.appendChild(eventCard(e)));
-    }
+       <div class="cards"></div>`;
+    const cards = sec.querySelector('.cards');
+    g.items.forEach(e => cards.appendChild(eventCard(e)));
     root.appendChild(sec);
   });
   observeReveal();
