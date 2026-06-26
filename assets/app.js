@@ -372,3 +372,5 @@ function loadFeed(){
     box.appendChild(a);
   });
 }
+
+document.getElementById('footer-year').textContent = new Date().getFullYear();
