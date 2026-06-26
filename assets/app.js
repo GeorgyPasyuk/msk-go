@@ -252,27 +252,6 @@ function formatAge(ageH){
   const d = Math.floor(ageH / 24);
   return `${d} ${plural(d,'день','дня','дней')} назад`;
 }
-function updateFreshness(generated, gDate){
-  const el = document.getElementById('freshness');
-  const text = document.getElementById('f-text');
-  if (!el || !text) return;
-  if (!generated || isNaN(generated)){
-    el.className = 'freshness stale';
-    text.textContent = 'дата обновления неизвестна';
-    return;
-  }
-  const ageH = (Date.now() - generated) / 36e5;
-  if (ageH < FRESH_HOURS){
-    el.className = 'freshness fresh';
-    text.textContent = 'Обновлено сегодня · ' + gDate.toLocaleString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-  } else if (ageH < AGING_HOURS){
-    el.className = 'freshness aging';
-    text.textContent = 'Обновлено ' + formatAge(ageH);
-  } else {
-    el.className = 'freshness stale';
-    text.textContent = 'Обновлено ' + formatAge(ageH);
-  }
-}
 function checkStale(generated){
   const banner = document.getElementById('staleBanner');
   if (!banner) return;
@@ -312,7 +291,6 @@ Promise.all([
     document.getElementById('stamp').innerHTML = (g
       ? '<span class="stamp-text">обновлено ' + g.toLocaleString('ru-RU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) + '</span>'
       : '') + '<span class="stamp-year"> ' + year + '</span>';
-    updateFreshness(gTs, g);
     checkStale(gTs);
     buildFilters(); renderAgenda(); buildSummer(); buildLinks(); observeReveal();
   })
