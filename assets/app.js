@@ -280,11 +280,6 @@ Promise.all([
 ]).then(([d, tg]) => {
     DATA = d;
     DATA.tg = tg;
-    const eventCountEl = document.getElementById('eventCount');
-    if (eventCountEl) {
-        const n = DATA.counts?.total ?? 0;
-        eventCountEl.textContent = n + ' ' + plural(n, 'событие', 'события', 'событий');
-    }
     const g = d.generated_at ? new Date(d.generated_at) : null;
     const gTs = g ? g.getTime() : null;
     const year = new Date().getFullYear();
