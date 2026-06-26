@@ -84,6 +84,7 @@ function renderAgenda(){
   }
   if (mode === 'upcoming') groups = fillWeekendGaps(groups);
   groups.forEach(g => {
+    if (mode === 'upcoming' && g.items.length === 0) return;
     const rel = mode === 'past' ? '' : relLabel(g.sat), range = rangeLabel(g.sat);
     const sec = document.createElement('section');
     sec.className = 'weekend reveal';
