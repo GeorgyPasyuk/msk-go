@@ -1,15 +1,25 @@
 name: auto-pr
-# Deterministic delivery, self-contained (no downstream-workflow dependency to avoid
-# GITHUB_TOKEN recursive-trigger limits): on a feature-branch push ->
-#   1) CI gate (same checks as ci.yml), 2) create PR + squash-merge to main, 3) deploy to VPS.
+# VERIFY-GATE delivery. Merge to main is GATED on the `qa:pass` label, which the QA
+# agent applies ONLY after verifying the change against the CEO Definition of Done on
+# the preview branch. This kills fake-done: the coder pushes, but nothing reaches prod
+# until QA verifies. Two paths:
+#   1) on push of a feature branch -> CI gate + visual-gate + open/refresh PR. NO merge.
+#      The PR waits for `qa:pass`.
+#   2) on the PR getting the `qa:pass` label -> re-run CI + visual-gate (safety; the
+#      deterministic gate still blocks broken code even if QA mislabels) -> squash-merge
+#      -> deploy to VPS.
 on:
   push:
     branches: ['gst-*', 'agent/*', 'feat/*']
+  pull_request:
+    types: [labeled]
 permissions:
   contents: write
   pull-requests: write
 jobs:
-  deliver:
+  # PATH 1: feature-branch push -> gate + open PR, but DO NOT merge (await qa:pass).
+  prepare:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,11 +36,9 @@ jobs:
           node --check assets/app.js
           test -f index.html
       - name: Visual QA gate (headless chromium)
-        # Runtime + VISUAL check on the BRANCH before merge: console/page errors,
-        # content render, CSS structural lint, and floating-control OVERLAP detection
-        # (the class of bug that shipped via MSK-2: stacked back-to-top buttons /
-        # scroll-hint colliding with the orange "наверх" button at bottom-right).
-        # Fails the job -> the merge step below never runs -> bad UI never reaches prod.
+        # Deterministic runtime+visual check: console/page errors, content render,
+        # CSS structural lint, floating-control OVERLAP. Blind to semantics / "should be
+        # gone" — that is the QA agent's DoD job. Fails the job -> PR is not created clean.
         run: |
           npm i --no-save playwright@1.61.1
           npx playwright install --with-deps chromium
@@ -41,13 +49,50 @@ jobs:
           rc=$?
           kill $SRV 2>/dev/null || true
           exit $rc
-      - name: Create PR + merge to main
+      - name: Open PR (NO merge — awaits qa:pass)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           BR="${GITHUB_REF_NAME}"
-          gh pr create -R "$GITHUB_REPOSITORY" --base main --head "$BR" --title "$BR" --body "Auto-delivery (CI gate passed in workflow)." || echo "PR exists"
-          gh pr merge -R "$GITHUB_REPOSITORY" "$BR" --squash --delete-branch
+          gh pr create -R "$GITHUB_REPOSITORY" --base main --head "$BR" --title "$BR" \
+            --body "Auto-delivery: CI + visual-gate passed. AWAITING QA verification against the Definition of Done. Merge happens only when QA adds the \`qa:pass\` label." \
+            || echo "PR exists"
+          echo "PR opened/updated for $BR — merge is gated on the qa:pass label."
+
+  # PATH 2: PR labeled qa:pass -> re-verify deterministic gate, then merge + deploy.
+  merge:
+    if: github.event_name == 'pull_request' && github.event.label.name == 'qa:pass'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+      - name: Setup
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: CI gate (py/json/js/index)
+        run: |
+          python3 -m py_compile scripts/*.py
+          python3 -c "import json; json.load(open('data/curated.json'))"
+          node --check assets/app.js
+          test -f index.html
+      - name: Visual QA gate (headless chromium) — re-verify before merge
+        run: |
+          npm i --no-save playwright@1.61.1
+          npx playwright install --with-deps chromium
+          python3 -m http.server 8099 --bind 127.0.0.1 &
+          SRV=$!
+          sleep 2
+          node tests/visual-gate.mjs "http://127.0.0.1:8099/"
+          rc=$?
+          kill $SRV 2>/dev/null || true
+          exit $rc
+      - name: Merge qa:pass PR to main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge -R "$GITHUB_REPOSITORY" "${{ github.event.pull_request.number }}" --squash --delete-branch
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.2.0
         with:
