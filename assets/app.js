@@ -92,6 +92,7 @@ function renderAgenda(){
       `<div class="wk-head">
          <span class="wk-rel">${rel || range}</span>
          ${rel ? `<span class="wk-date">${range}</span>` : ''}
+         <span class="wk-count">${g.items.length} ${plural(g.items.length, 'событие', 'события', 'событий')}</span>
        </div>
        <div class="cards"></div>`;
     const cards = sec.querySelector('.cards');
