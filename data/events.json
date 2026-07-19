@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-07-18T08:23:48+00:00",
-  "kudago_ok": false,
+  "generated_at": "2026-07-19T08:56:10+00:00",
+  "kudago_ok": true,
   "sources": {
     "kudago": {
-      "ok": false,
-      "count": 0,
-      "last_ok": null
+      "ok": true,
+      "count": 3,
+      "last_ok": "2026-07-19T08:56:10+00:00"
     },
     "timepad": {
       "ok": false,
@@ -20,16 +20,16 @@
     "curated": {
       "ok": true,
       "count": 10,
-      "last_ok": "2026-07-18T08:23:48+00:00"
+      "last_ok": "2026-07-19T08:56:10+00:00"
     }
   },
   "counts": {
-    "total": 10,
+    "total": 13,
     "curated": 10,
-    "kudago": 0,
+    "kudago": 3,
     "timepad": 0,
     "telegram": 0,
-    "season_long": 3,
+    "season_long": 6,
     "past": 0
   },
   "events": [
@@ -222,6 +222,63 @@
       "description": "100 дней бесплатных активностей: крокет и серсо, ретрофотоателье, мастер-классы, бесплатные спектакли каждый вечер на бульварах.",
       "lat": 55.76,
       "lon": 37.605
+    },
+    {
+      "title": "Пробные уроки по хастлу и бачате (парные танцы)",
+      "place": "студия танца Alpha Dance",
+      "address": "пер. Шелапутинский, д. 6, стр. 3, 2-й этаж",
+      "lat": 55.7477715,
+      "lon": 37.66274829999986,
+      "category": "education",
+      "category_label": "Лекция",
+      "price": "бесплатно",
+      "url": "https://kudago.com/msk/event/otkrytyj-urok-po-hastlu-msk/",
+      "source": "kudago",
+      "featured": false,
+      "description": "Парный танец развивает индивидуальность, подвижность и творческое мышление. В студии танца Alpha Dance состоятся пробные уроки по хастлу и бачате, на которых можно познакомиться с преподавателями и насладиться настоящим феерическим танцевальным шоу.",
+      "id": "kudago-73961-season",
+      "start": "2026-07-19T00:00:00",
+      "end": "2026-08-06T21:00:00",
+      "allDay": true,
+      "season_long": true
+    },
+    {
+      "title": "Плавание для детей в клубе «эйс»",
+      "place": "теннисный клуб «Эйс»",
+      "address": "ул. Флотская, д. 15, стр. 2",
+      "lat": 55.857483,
+      "lon": 37.505175,
+      "category": "recreation",
+      "category_label": "Отдых",
+      "price": "От 1200 рублей",
+      "url": "https://kudago.com/msk/event/plavanie-dlya-detej-v-klube-ejs/",
+      "source": "kudago",
+      "featured": false,
+      "description": "На уроках с инструктором малыши смогут научиться плавать, а те, кто постарше — освоить разнообразные стили и техники.",
+      "id": "kudago-92312-season",
+      "start": "2026-07-19T00:00:00",
+      "end": "2026-09-30T23:59:00",
+      "allDay": true,
+      "season_long": true
+    },
+    {
+      "title": "Быстрые свидания от fast life",
+      "place": null,
+      "address": null,
+      "lat": null,
+      "lon": null,
+      "category": "party",
+      "category_label": "Вечеринка",
+      "price": "От 1099 рублей",
+      "url": "https://kudago.com/msk/event/speed-dating-fast-life/",
+      "source": "kudago",
+      "featured": false,
+      "description": "Fast Life ждёт всех, кто находится в поиске своей половинки или просто жаждет новых знакомств. 10-20 быстрых свиданий за вечер — и это не предел... А на следующий день вы можете созвониться с понравившимися вам людьми, которые тоже прониклись к вам симпатией.",
+      "id": "kudago-8752-season",
+      "start": "2026-07-19T00:00:00",
+      "end": "2026-09-30T23:59:00",
+      "allDay": true,
+      "season_long": true
     }
   ],
   "past": []
